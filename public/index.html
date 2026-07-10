@@ -5,7 +5,7 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHXA7 LaunchPad</title>
+    <title>RNO04 LaunchPad</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1747,7 +1747,7 @@ async function showCellHistory(e, rowId, colIndex) {
     content.innerHTML = '<p style="text-align:center; color:#666;">Loading history...</p>';
 
     const { data, error } = await _supabase
-        .from('PHXA7edit_history')
+        .from('RNO04edit_history')
         .select('*')
         .eq('row_id', rowId)
         .eq('col_index', colIndex)
@@ -3387,8 +3387,8 @@ async function declineUser(email, requestId) { // Added email parameter here
     if (!confirm(`Are you sure you want to decline the request from ${email}?`)) return;
 
     try {
-        // 1. Remove from PHXA7access_requests
-        const { error } = await _supabase.from('PHXA7access_requests').delete().eq('id', requestId);
+        // 1. Remove from RNO04access_requests
+        const { error } = await _supabase.from('RNO04access_requests').delete().eq('id', requestId);
         if (error) throw error;
 
         // 2. Send Notification Email via Google Script
@@ -3404,7 +3404,7 @@ async function declineUser(email, requestId) { // Added email parameter here
 
 async function refreshRequestList() {
     const listContainer = document.getElementById('request-list');
-    const { data, error } = await _supabase.from('PHXA7access_requests').select('*');
+    const { data, error } = await _supabase.from('RNO04access_requests').select('*');
 
     if (error || !data || data.length === 0) {
         listContainer.innerHTML = '<p style="color: #666; font-size: 13px; text-align: center; padding: 20px;">No pending requests.</p>';
@@ -3431,15 +3431,15 @@ async function refreshRequestList() {
 
 async function admitUser(email, company, requestId) {
     try {
-        // 1. Add to PHXA7authorized_editors including the company
+        // 1. Add to RNO04authorized_editors including the company
         const { error: addError } = await _supabase
-            .from('PHXA7authorized_editors')
+            .from('RNO04authorized_editors')
             .insert([{ email: email.toLowerCase(), company: company }]);
         
         if (addError) throw addError;
 
-        // 2. Remove from PHXA7access_requests
-        await _supabase.from('PHXA7access_requests').delete().eq('id', requestId);
+        // 2. Remove from RNO04access_requests
+        await _supabase.from('RNO04access_requests').delete().eq('id', requestId);
 
         // 3. Send Notification Email via Google Script
         const url = `${GOOGLE_SCRIPT_URL}?action=notifyAdmit&email=${encodeURIComponent(email)}`;
@@ -3514,7 +3514,7 @@ function initRealtimeSync() {
         .on('postgres_changes', { 
             event: '*', // Listen to INSERT, UPDATE, and DELETE
             schema: 'public', 
-            table: 'PHXA7BackEndData' // FIX: Corrected table name
+            table: 'RNO04BackEndData' // FIX: Corrected table name
         }, payload => {
             if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
                 const row = payload.new;
@@ -3606,10 +3606,10 @@ async function handleForgotPin() {
 // 1. Function to handle sending the Magic Link
 // --- AUTHENTICATION LOGIC ---
 
-// 1. Verify if email exists in your PHXA7authorized_editors table
+// 1. Verify if email exists in your RNO04authorized_editors table
 async function verifyPermission(email) {
     const { data, error } = await _supabase
-        .from('PHXA7authorized_editors')
+        .from('RNO04authorized_editors')
         .select('is_admin, company') // Fetch company here
         .eq('email', email.toLowerCase())
         .single();
@@ -3730,7 +3730,7 @@ async function completeAppLaunch() {
     
     try {
         // Load the actual schedule data
-        await fetchPHXA7dropdownoptions();
+        await fetchRNO04dropdownoptions();
         await loadEquivalentActivities();
         await loadScheduleConfig();
         await loadAppConfig();
@@ -3801,7 +3801,7 @@ if (permissions.isAuthorized) {
 
     if (window.isAdmin) {
         console.log("🧹 Admin detected: Cleaning up old history records...");
-        const { error } = await _supabase.rpc('delete_old_PHXA7edit_history');
+        const { error } = await _supabase.rpc('delete_old_RNO04edit_history');
         if (error) console.error("Cleanup Error:", error);
     }
     
@@ -3818,7 +3818,7 @@ if (permissions.isAuthorized) {
     }
     
    // Continue with the rest of the launch sequence
-    await fetchPHXA7dropdownoptions();
+    await fetchRNO04dropdownoptions();
     await loadEquivalentActivities();
     await loadScheduleConfig();
     
@@ -3860,7 +3860,7 @@ async function processGrantAccess() {
     try {
         // --- THE INTERACTION WITH SUPABASE ---
         const { error } = await _supabase
-            .from('PHXA7authorized_editors')
+            .from('RNO04authorized_editors')
             .insert([{ email: emailToAdd.toLowerCase() }]);
 
         if (error) throw error;
@@ -4181,10 +4181,10 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyMFWTzo_9idu
 
 let dropdownData = { col1: [], col2: [], col3: [], col4: [], col6: [], col7: [] };
 
-async function fetchPHXA7dropdownoptions() {
+async function fetchRNO04dropdownoptions() {
     // 1. Fetch ALL columns at once so we can see which Assets map to which Places on the same row
     const { data, error } = await _supabase
-        .from('PHXA7dropdownoptions')
+        .from('RNO04dropdownoptions')
         .select('Times, Places, Activities, Assets, Trade_Partners, Results')
         .range(0, 1000); 
 
@@ -4578,7 +4578,7 @@ function saveCell(cell, value, colIndex, isImmediate = false) {
         updateObj[`col${colIndex}`] = currentValue;
 
         const { data, error } = await _supabase
-            .from('PHXA7BackEndData')
+            .from('RNO04BackEndData')
             .upsert([updateObj])
             .select();
 
@@ -4589,7 +4589,7 @@ function saveCell(cell, value, colIndex, isImmediate = false) {
             // --- LOG TO EDIT HISTORY ---
             // Only log if this wasn't a redundant failsafe save
             if (currentValue !== oldValue) {
-                await _supabase.from('PHXA7edit_history').insert([{
+                await _supabase.from('RNO04edit_history').insert([{
                     row_id: parseInt(rowNum),
                     col_index: colIndex,
                     old_value: oldValue,
@@ -5136,7 +5136,7 @@ async function deleteFullRow(wrapperId, bypassConfirm = false) {
         }
 
         try {
-            const { error } = await _supabase.from('PHXA7BackEndData').delete().eq('id', rowNumericId);
+            const { error } = await _supabase.from('RNO04BackEndData').delete().eq('id', rowNumericId);
             if (error) throw error;
         } catch (err) {
             console.error("Delete error:", err.message);
@@ -5233,7 +5233,7 @@ async function saveRow(rowNum, dayLabel, col6Override = null) {
     };
 
     try {
-        const { error } = await _supabase.from('PHXA7BackEndData').upsert(rowData, { onConflict: 'id' });
+        const { error } = await _supabase.from('RNO04BackEndData').upsert(rowData, { onConflict: 'id' });
         if (!error) document.getElementById('saveIndicator').innerText = `Last saved at: ${getTimestamp()}`;
     } catch (err) {
         console.error("🔴 Save Error:", err);
@@ -5454,7 +5454,7 @@ async function switchToRequestView() {
     document.getElementById('auth-success').style.display = 'none';
     
     // 1. Wait for the company list to finish downloading
-    await fetchPHXA7dropdownoptions(); 
+    await fetchRNO04dropdownoptions(); 
     
     // 2. Inject the Trade Partners (Col 6) into the dropdown
     const companySelect = document.getElementById('request-company-select');
@@ -5516,7 +5516,7 @@ async function submitAccessRequest() {
     try {
         // 1. Log request with Company in Supabase
         const { error: dbError } = await _supabase
-            .from('PHXA7access_requests')
+            .from('RNO04access_requests')
             .insert([{ email, company }]);
         
         if (dbError) throw dbError;
@@ -5551,7 +5551,7 @@ function getTimestamp() {
 
 async function loadData(isSilent = false) {
     try {
-        const { data, error } = await _supabase.from('PHXA7BackEndData').select('*');
+        const { data, error } = await _supabase.from('RNO04BackEndData').select('*');
         if (error) throw error;
 
         if (data) {
