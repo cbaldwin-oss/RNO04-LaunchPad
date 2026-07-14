@@ -3057,8 +3057,9 @@ function renderSidebarFilters() {
 function renderDynamicHeaders() {
     const headerGrid = document.getElementById('dynamic-frozen-grid');
     
-    // Exactly matches the math of the Drag Handle + Checkbox + Gaps underneath
-    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 55px;"></div>'; 
+    // 🟢 THE FIX: Set to exactly 50px! 
+    // 50px (Spacer) + 5px (CSS Gap) = 55px, perfectly matching the rows below!
+    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 50px; box-sizing: border-box;"></div>'; 
     
     const visibleCols = scheduleColConfig.filter(c => c.visible);
     if (visibleCols.length === 0) return;
