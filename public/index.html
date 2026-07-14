@@ -108,8 +108,10 @@
 
     .cell-row {
         display: flex;
-        gap: 5px;
-        margin-bottom: 4px;
+        align-items: stretch;
+        padding: 6px 0; 
+        border-bottom: 2px solid #b0bec5; 
+        gap: 5px; /* 🟢 THE FIX: Matches the header gap perfectly */
     }
 
     .cell-row input {
@@ -3030,8 +3032,14 @@ function renderSidebarFilters() {
 
 function renderDynamicHeaders() {
     const headerGrid = document.getElementById('dynamic-frozen-grid');
-    // Account for the drag handle and checkbox
-    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 45px;"></div>'; 
+    
+    // 🟢 THE FIX: 25px (Handle) + 5px (Gap) + 20px (Checkbox) + 5px (Margin) = exactly 55px!
+    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 55px;"></div>'; 
+    
+    const visibleCols = scheduleColConfig.filter(c => c.visible);
+    if (visibleCols.length === 0) return;
+    
+    const lastColId = visibleCols[visibleCols.length - 1].id;
     
     scheduleColConfig.forEach(col => {
         if (!col.visible) return;
@@ -3047,10 +3055,12 @@ function renderDynamicHeaders() {
         textSpan.style.textOverflow = 'ellipsis';
         cell.appendChild(textSpan);
 
-        // Add the invisible drag handle
-        const resizer = document.createElement('div');
-        resizer.className = 'col-resizer';
-        cell.appendChild(resizer);
+        // 🟢 THE FIX: Do not add a resizer handle to the very last column
+        if (col.id !== lastColId) {
+            const resizer = document.createElement('div');
+            resizer.className = 'col-resizer';
+            cell.appendChild(resizer);
+        }
         
         headerGrid.appendChild(cell);
     });
@@ -3068,21 +3078,39 @@ function applyColumnWidths() {
     }
     
     let css = '';
+    const visibleCols = scheduleColConfig.filter(c => c.visible);
+    if (visibleCols.length === 0) return;
+    const lastColId = visibleCols[visibleCols.length - 1].id;
+    
     scheduleColConfig.forEach(col => {
         if (col.visible) {
-            // Injects dynamic CSS rules to force the width across the entire column simultaneously
-            css += `
-                [data-col-index="${col.id}"] { 
-                    flex: 0 0 ${col.width}px !important; 
-                    width: ${col.width}px !important; 
-                    max-width: ${col.width}px !important;
-                }
-                .header-cell[data-col-id="${col.id}"] {
-                    flex: 0 0 ${col.width}px !important; 
-                    width: ${col.width}px !important; 
-                    max-width: ${col.width}px !important;
-                }
-            `;
+            // 🟢 THE FIX: The last column gets "flex: 1" so it auto-fills the screen edge!
+            if (col.id === lastColId) {
+                css += `
+                    [data-col-index="${col.id}"] { 
+                        flex: 1 !important; 
+                        min-width: ${col.width}px !important; 
+                    }
+                    .header-cell[data-col-id="${col.id}"] {
+                        flex: 1 !important; 
+                        min-width: ${col.width}px !important; 
+                    }
+                `;
+            } else {
+                // All other columns get strict hardcoded widths based on your drags
+                css += `
+                    [data-col-index="${col.id}"] { 
+                        flex: 0 0 ${col.width}px !important; 
+                        width: ${col.width}px !important; 
+                        max-width: ${col.width}px !important;
+                    }
+                    .header-cell[data-col-id="${col.id}"] {
+                        flex: 0 0 ${col.width}px !important; 
+                        width: ${col.width}px !important; 
+                        max-width: ${col.width}px !important;
+                    }
+                `;
+            }
         }
     });
     styleEl.innerHTML = css;
@@ -4470,11 +4498,10 @@ function addRowsToContainer(container, dayLabel, anchorBtn = null, startIdx = 0,
         // --- NEW DRAG AND DROP HANDLE ---
         const dragHandle = document.createElement('div');
         dragHandle.innerHTML = '⣿';
-        dragHandle.style.cssText = "cursor: grab; color: #bbb; padding: 0 5px; font-size: 18px; user-select: none; display: flex; align-items: center;";
+        dragHandle.style.cssText = "flex: 0 0 25px; cursor: grab; color: #bbb; font-size: 18px; user-select: none; display: flex; align-items: center; justify-content: center;";
         dragHandle.className = "drag-handle";
         dragHandle.title = "Drag to reorder";
         
-        // Only allow dragging when hovering over the handle, so inputs still work normally
         dragHandle.onmouseenter = () => rowDiv.setAttribute('draggable', 'true');
         dragHandle.onmouseleave = () => rowDiv.removeAttribute('draggable');
         
@@ -4534,7 +4561,8 @@ function addRowsToContainer(container, dayLabel, anchorBtn = null, startIdx = 0,
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.className = 'row-checkbox';
-        cb.style.cssText = "margin: 0 5px; flex: 0 0 20px; cursor: pointer; transform: scale(1.2);";
+        // 🟢 THE FIX: Locked to exactly 20px wide with a 5px right margin
+        cb.style.cssText = "flex: 0 0 20px; margin: 0 5px 0 0; cursor: pointer; transform: scale(1.2);";
         cb.onchange = (e) => handleRowSelection(e, rowDiv.id);
         rowDiv.appendChild(cb);
 
