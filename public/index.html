@@ -1027,28 +1027,34 @@ html, body {
         width: 12px;
         height: 100%;
         position: absolute;
-        right: -6px; /* Centered directly over the column border */
+        right: -6px; 
         top: 0;
         cursor: col-resize;
         background-color: transparent;
         z-index: 10;
-        display: none; /* Disabled until edit mode is activated */
+        display: none; 
     }
+    
     .header-cell {
         position: relative; 
+        border-right: 1px solid rgba(255, 255, 255, 0.4); /* 🟢 BRINGS BACK THE | DIVIDERS */
+        box-sizing: border-box; /* 🟢 Locks padding math */
+    }
+    .header-cell:last-child {
+        border-right: none !important; /* Removes divider from the final column */
     }
     
     /* Layout Edit Mode Visuals */
     body.layout-edit-mode .col-resizer {
         display: block;
-        background-color: rgba(12, 68, 250, 0.4); /* Semi-transparent blue handle */
+        background-color: rgba(12, 68, 250, 0.4); 
     }
     body.layout-edit-mode .col-resizer:hover, 
     body.layout-edit-mode .col-resizer.active-drag {
-        background-color: #0c44fa; /* Solid blue when dragging */
+        background-color: #0c44fa; 
     }
     body.layout-edit-mode .header-cell {
-        border-right: 2px dashed #0c44fa !important; /* Obvious column dividers */
+        border-right: 2px dashed #0c44fa !important; 
     }
 
     /* Floating Toolbar */
@@ -1071,17 +1077,29 @@ html, body {
         display: flex;
     }
     
-    #schedule-view { overflow-x: auto; }
+    #schedule-view { overflow-x: auto; overflow-y: auto; }
+    
+    /* 🟢 THE FIX: Full screen stretch allowing last column to affix to the right edge */
+    .week-container {
+        margin: 0 !important;
+        width: 100% !important;
+        border: none !important;
+        border-bottom: 2px solid #2e7d32 !important;
+        border-radius: 0 !important;
+    }
     
     .frozen-bar {
-        width: max-content !important;
-        min-width: 100% !important;
+        width: 100% !important; 
+        min-width: max-content !important;
         margin: 0 !important; 
+        box-sizing: border-box !important;
     }
     .frozen-grid, .cell-row {
-        width: max-content !important;
-        min-width: 100% !important;
+        width: 100% !important;
+        min-width: max-content !important;
         flex-wrap: nowrap !important;
+        box-sizing: border-box !important;
+        gap: 5px; /* Ensures the gap is perfectly locked */
     }
 </style>
 </head>
@@ -3033,8 +3051,8 @@ function renderSidebarFilters() {
 function renderDynamicHeaders() {
     const headerGrid = document.getElementById('dynamic-frozen-grid');
     
-    // 🟢 THE FIX: 25px (Handle) + 5px (Gap) + 20px (Checkbox) + 5px (Margin) = exactly 55px!
-    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 55px;"></div>'; 
+    // 🟢 THE FIX: 50px (Spacer) + 5px (Gap) = exactly 55px to perfectly match the row elements!
+    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 50px;"></div>'; 
     
     const visibleCols = scheduleColConfig.filter(c => c.visible);
     if (visibleCols.length === 0) return;
@@ -3089,11 +3107,15 @@ function applyColumnWidths() {
                 css += `
                     [data-col-index="${col.id}"] { 
                         flex: 1 !important; 
-                        min-width: ${col.width}px !important; 
+                        min-width: ${col.width}px !important;
+                        max-width: none !important;
+                        box-sizing: border-box !important;
                     }
                     .header-cell[data-col-id="${col.id}"] {
                         flex: 1 !important; 
-                        min-width: ${col.width}px !important; 
+                        min-width: ${col.width}px !important;
+                        max-width: none !important;
+                        box-sizing: border-box !important;
                     }
                 `;
             } else {
@@ -3103,11 +3125,13 @@ function applyColumnWidths() {
                         flex: 0 0 ${col.width}px !important; 
                         width: ${col.width}px !important; 
                         max-width: ${col.width}px !important;
+                        box-sizing: border-box !important;
                     }
                     .header-cell[data-col-id="${col.id}"] {
                         flex: 0 0 ${col.width}px !important; 
                         width: ${col.width}px !important; 
                         max-width: ${col.width}px !important;
+                        box-sizing: border-box !important;
                     }
                 `;
             }
@@ -4495,7 +4519,6 @@ function addRowsToContainer(container, dayLabel, anchorBtn = null, startIdx = 0,
         // Hide initial overflow rows, but always show dynamically added ones
         rowDiv.style.display = (r > 14 && startIdx === 0) ? 'none' : 'flex';
 
-        // --- NEW DRAG AND DROP HANDLE ---
         const dragHandle = document.createElement('div');
         dragHandle.innerHTML = '⣿';
         dragHandle.style.cssText = "flex: 0 0 25px; cursor: grab; color: #bbb; font-size: 18px; user-select: none; display: flex; align-items: center; justify-content: center;";
@@ -4561,8 +4584,8 @@ function addRowsToContainer(container, dayLabel, anchorBtn = null, startIdx = 0,
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.className = 'row-checkbox';
-        // 🟢 THE FIX: Locked to exactly 20px wide with a 5px right margin
-        cb.style.cssText = "flex: 0 0 20px; margin: 0 5px 0 0; cursor: pointer; transform: scale(1.2);";
+        // 🟢 THE FIX: Locked to exactly 20px wide with NO margins (Total Offset = 50px)
+        cb.style.cssText = "flex: 0 0 20px; margin: 0; cursor: pointer; transform: scale(1.2);";
         cb.onchange = (e) => handleRowSelection(e, rowDiv.id);
         rowDiv.appendChild(cb);
 
