@@ -1081,22 +1081,27 @@ html, body {
     
     /* 🟢 THE FIX: Full screen stretch allowing last column to affix to the right edge */
     .week-container {
-        margin: 0 !important;
+        margin: 25px 0 !important; /* Restores the visual gap between the weeks */
         width: 100% !important;
+        box-sizing: border-box !important; /* Locks padding to screen width */
         border: none !important;
-        border-bottom: 2px solid #2e7d32 !important;
+        border-top: 2px solid #2e7d32 !important; /* Restores the top line */
+        border-bottom: 2px solid #2e7d32 !important; /* Restores the bottom line */
         border-radius: 0 !important;
+    }
+    
+    .rows-container {
+        box-sizing: border-box !important; /* Prevents rows from pushing past 100% width */
     }
     
     .frozen-bar {
         width: 100% !important; 
-        min-width: max-content !important;
         margin: 0 !important; 
         box-sizing: border-box !important;
     }
+    
     .frozen-grid, .cell-row {
         width: 100% !important;
-        min-width: max-content !important;
         flex-wrap: nowrap !important;
         box-sizing: border-box !important;
         gap: 5px; /* Ensures the gap is perfectly locked */
