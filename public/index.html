@@ -1019,30 +1019,58 @@ html, body {
     display: flex;
     flex-direction: column;
 }
+
 /* --- RESIZABLE COLUMNS CSS --- */
     .col-resizer {
-        width: 8px;
+        width: 12px;
         height: 100%;
         position: absolute;
-        right: 0;
+        right: -6px; /* Centered directly over the column border */
         top: 0;
         cursor: col-resize;
         background-color: transparent;
         z-index: 10;
-    }
-    .col-resizer:hover, .col-resizer:active {
-        background-color: #fbc02d; /* Highlights yellow when dragged */
+        display: none; /* Disabled until edit mode is activated */
     }
     .header-cell {
-        position: relative; /* Keeps the resizer locked to the right side of each cell */
+        position: relative; 
     }
     
-    /* Allow the grid to horizontally scroll when columns are expanded */
-    #schedule-view {
-        overflow-x: auto;
+    /* Layout Edit Mode Visuals */
+    body.layout-edit-mode .col-resizer {
+        display: block;
+        background-color: rgba(12, 68, 250, 0.4); /* Semi-transparent blue handle */
+    }
+    body.layout-edit-mode .col-resizer:hover, 
+    body.layout-edit-mode .col-resizer.active-drag {
+        background-color: #0c44fa; /* Solid blue when dragging */
+    }
+    body.layout-edit-mode .header-cell {
+        border-right: 2px dashed #0c44fa !important; /* Obvious column dividers */
+    }
+
+    /* Floating Toolbar */
+    #layout-edit-toolbar {
+        display: none;
+        position: fixed;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ffffff;
+        border: 2px solid #0c44fa;
+        padding: 12px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        z-index: 10500;
+        align-items: center;
+        gap: 15px;
+    }
+    body.layout-edit-mode #layout-edit-toolbar {
+        display: flex;
     }
     
-    /* Removes the hardcoded centering constraints so the grid expands dynamically */
+    #schedule-view { overflow-x: auto; }
+    
     .frozen-bar {
         width: max-content !important;
         min-width: 100% !important;
@@ -1154,6 +1182,11 @@ html, body {
 </div>
 
 <div id="app-body">
+    <div id="layout-edit-toolbar">
+    <span style="font-weight: bold; color: #0c44fa; font-size: 15px;">Layout Edit Mode Active: Drag column borders to resize.</span>
+    <button onclick="saveLayoutEdits()" style="background: #0c44fa; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px;">Save Layout</button>
+    <button onclick="cancelLayoutEdits()" style="background: #f1f3f4; color: #333; border: 1px solid #ccc; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px;">Cancel</button>
+</div>
     
 <div class="modal-overlay" id="schedule-config-modal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
     <div style="background: white; width: 1100px; max-height: 90vh; overflow-y: auto; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);"> 
@@ -1227,9 +1260,12 @@ html, body {
             <button onclick="addPhaseRuleRow()" style="margin-top: 10px; padding: 5px 10px; cursor: pointer; border: 1px dashed #2e7d32; background: white; color: #2e7d32;">+ Add Rule</button>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px;">
-            <button onclick="document.getElementById('schedule-config-modal').style.display='none'" style="padding: 8px 15px; cursor: pointer; background: #f1f3f4; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; color: #555;">Cancel</button>
-            <button onclick="saveAllSettings(this)" style="padding: 8px 15px; background: #2e7d32; color: white; cursor: pointer; border: none; border-radius: 4px; font-weight: bold;">Save All Settings</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px;">
+            <button onclick="enterLayoutEditMode()" style="padding: 8px 15px; background: #0c44fa; color: white; cursor: pointer; border: none; border-radius: 4px; font-weight: bold;">Change Layout</button>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="document.getElementById('schedule-config-modal').style.display='none'" style="padding: 8px 15px; cursor: pointer; background: #f1f3f4; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; color: #555;">Cancel</button>
+                <button onclick="saveAllSettings(this)" style="padding: 8px 15px; background: #2e7d32; color: white; cursor: pointer; border: none; border-radius: 4px; font-weight: bold;">Save All Settings</button>
+            </div>
         </div>
     </div>
 </div>
@@ -3054,11 +3090,16 @@ function applyColumnWidths() {
 
 function initColumnResizers() {
     const resizers = document.querySelectorAll('.col-resizer');
-    let startX, startWidth, colId, headerCell;
+    let startX, startWidth, colId, headerCell, activeResizer;
     
     resizers.forEach(resizer => {
         resizer.addEventListener('mousedown', (e) => {
+            // Only allow dragging if the Edit Mode is active!
+            if (!document.body.classList.contains('layout-edit-mode')) return;
+            
             e.preventDefault();
+            activeResizer = resizer;
+            activeResizer.classList.add('active-drag');
             headerCell = resizer.parentElement;
             colId = parseInt(headerCell.getAttribute('data-col-id'));
             startX = e.pageX;
@@ -3079,25 +3120,51 @@ function initColumnResizers() {
         }
     }
     
-    async function mouseUpHandler() {
+    function mouseUpHandler() {
         document.removeEventListener('mousemove', mouseMoveHandler);
         document.removeEventListener('mouseup', mouseUpHandler);
-        
-        document.getElementById('saveIndicator').innerText = "Saving Layout...";
-        document.getElementById('saveIndicator').style.display = 'inline-block';
-        
-        // Push the new layout payload directly back to Google Sheets!
-        try {
-            await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'setScheduleConfig', data: scheduleColConfig }),
-                mode: 'no-cors'
-            });
-            document.getElementById('saveIndicator').innerText = "Saved";
-        } catch (e) {
-            console.error("Failed to save width", e);
+        if (activeResizer) {
+            activeResizer.classList.remove('active-drag');
+            activeResizer = null;
         }
     }
+}
+
+// --- NEW: LAYOUT EDIT MODE LOGIC ---
+let backupColConfig = [];
+
+function enterLayoutEditMode() {
+    document.getElementById('schedule-config-modal').style.display = 'none';
+    backupColConfig = JSON.parse(JSON.stringify(scheduleColConfig)); // Save a backup
+    document.body.classList.add('layout-edit-mode'); // Trigger the blue visual CSS
+}
+
+function cancelLayoutEdits() {
+    scheduleColConfig = backupColConfig; // Restore the backup
+    applyColumnWidths(); // Snap back to original sizes
+    document.body.classList.remove('layout-edit-mode');
+}
+
+async function saveLayoutEdits() {
+    const btn = document.querySelector('#layout-edit-toolbar button:nth-child(2)');
+    btn.innerText = "Saving...";
+    btn.disabled = true;
+    
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'setScheduleConfig', data: scheduleColConfig }),
+            mode: 'no-cors'
+        });
+        alert("Column layout saved successfully!");
+    } catch (e) {
+        console.error("Failed to save layout.", e);
+        alert("There was an issue saving to Google Sheets.");
+    }
+    
+    btn.innerText = "Save Layout";
+    btn.disabled = false;
+    document.body.classList.remove('layout-edit-mode');
 }
 
 /**
