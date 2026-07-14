@@ -1037,14 +1037,13 @@ html, body {
     
     .header-cell {
         position: relative; 
-        border-right: 1px solid rgba(255, 255, 255, 0.4); /* 🟢 BRINGS BACK THE | DIVIDERS */
-        box-sizing: border-box; /* 🟢 Locks padding math */
+        border-right: 1px solid rgba(255, 255, 255, 0.4); 
+        box-sizing: border-box; 
     }
     .header-cell:last-child {
-        border-right: none !important; /* Removes divider from the final column */
+        border-right: none !important; 
     }
     
-    /* Layout Edit Mode Visuals */
     body.layout-edit-mode .col-resizer {
         display: block;
         background-color: rgba(12, 68, 250, 0.4); 
@@ -1057,7 +1056,6 @@ html, body {
         border-right: 2px dashed #0c44fa !important; 
     }
 
-    /* Floating Toolbar */
     #layout-edit-toolbar {
         display: none;
         position: fixed;
@@ -1076,35 +1074,35 @@ html, body {
     body.layout-edit-mode #layout-edit-toolbar {
         display: flex;
     }
-    
-    #schedule-view { overflow-x: auto; overflow-y: auto; }
-    
-    /* 🟢 THE FIX: Full screen stretch allowing last column to affix to the right edge */
+
+    /* 🟢 REVERTED: Back to original stable constraints so sidebars don't overlap */
     .week-container {
-        margin: 25px 0 !important; /* Restores the visual gap between the weeks */
-        width: 100% !important;
-        box-sizing: border-box !important; /* Locks padding to screen width */
-        border: none !important;
-        border-top: 2px solid #2e7d32 !important; /* Restores the top line */
-        border-bottom: 2px solid #2e7d32 !important; /* Restores the bottom line */
-        border-radius: 0 !important;
-    }
-    
-    .rows-container {
-        box-sizing: border-box !important; /* Prevents rows from pushing past 100% width */
+        margin: 10px auto !important; /* Reduced gap between weeks */
+        width: 95% !important;
+        border: 2px solid #2e7d32 !important;
+        border-radius: 8px !important;
+        background: #ffffff !important;
+        overflow: hidden !important; /* Prevents internal horizontal scrolling */
+        box-sizing: border-box;
     }
     
     .frozen-bar {
-        width: 100% !important; 
-        margin: 0 !important; 
-        box-sizing: border-box !important;
-    }
-    
-    .frozen-grid, .cell-row {
-        width: 100% !important;
-        flex-wrap: nowrap !important;
-        box-sizing: border-box !important;
-        gap: 5px; /* Ensures the gap is perfectly locked */
+        position: sticky;
+        top: 50px;
+        z-index: 999;
+        background-color: #00d134f1;
+        color: rgb(255, 255, 255);
+        height: 28px;
+        display: flex;
+        align-items: center;
+        width: 88.3% !important; /* Reverted to match original math */
+        margin: 0 auto !important; 
+        left: 0% !important;
+        padding: 0 30px !important;
+        border-radius: 4px;
+        border-bottom: 1px solid #1b5e20;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-sizing: border-box;
     }
 </style>
 </head>
@@ -1510,16 +1508,17 @@ html, body {
 
 <script>
 
+// 🟢 THE FIX: Widths are now percentages that perfectly equal 100%
 const defaultScheduleConfig = [
-    { id: 1, name: 'Time', visible: true, width: 90 },
-    { id: 2, name: 'Place', visible: true, width: 110 },
-    { id: 3, name: 'Activity', visible: true, width: 160 },
-    { id: 4, name: 'Asset', visible: true, width: 160 },
-    { id: 5, name: 'Status', visible: true, width: 130 },
-    { id: 6, name: 'Trade Partners', visible: true, width: 140 },
-    { id: 7, name: 'Result', visible: true, width: 110 },
-    { id: 8, name: 'Notes', visible: true, width: 220 },
-    { id: 9, name: 'Duration', visible: true, width: 90 }
+    { id: 1, name: 'Time', visible: true, width: 10 },
+    { id: 2, name: 'Place', visible: true, width: 10 },
+    { id: 3, name: 'Activity', visible: true, width: 15 },
+    { id: 4, name: 'Asset', visible: true, width: 15 },
+    { id: 5, name: 'Status', visible: true, width: 10 },
+    { id: 6, name: 'Trade Partners', visible: true, width: 15 },
+    { id: 7, name: 'Result', visible: true, width: 10 },
+    { id: 8, name: 'Notes', visible: true, width: 10 },
+    { id: 9, name: 'Duration', visible: true, width: 5 }
 ];
 
 async function loadScheduleConfig() {
@@ -1529,12 +1528,14 @@ async function loadScheduleConfig() {
         if (data.status === 'success' && data.data) {
             scheduleColConfig = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
             if (!scheduleColConfig.find(c => c.id === 9)) {
-                scheduleColConfig.push({ id: 9, name: 'Duration', visible: true, width: 90 });
+                scheduleColConfig.push({ id: 9, name: 'Duration', visible: true, width: 5 });
             }
-            // Add default widths to older legacy configurations seamlessly
-            scheduleColConfig.forEach(col => {
-                if (!col.width) col.width = defaultScheduleConfig.find(d => d.id === col.id)?.width || 120;
-            });
+            
+            // Auto-Normalize: If old config has pixel values (e.g. > 100 sum), recalculate them into percentages
+            let totalWidth = scheduleColConfig.reduce((acc, col) => acc + (col.width || 0), 0);
+            if (totalWidth > 105) {
+                scheduleColConfig.forEach(col => { col.width = ((col.width / totalWidth) * 100); });
+            }
         }
     } catch (e) {
         console.error("Failed to load Schedule Config from cloud. Using defaults.", e);
@@ -3056,8 +3057,8 @@ function renderSidebarFilters() {
 function renderDynamicHeaders() {
     const headerGrid = document.getElementById('dynamic-frozen-grid');
     
-    // 🟢 THE FIX: 50px (Spacer) + 5px (Gap) = exactly 55px to perfectly match the row elements!
-    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 50px;"></div>'; 
+    // Exactly matches the math of the Drag Handle + Checkbox + Gaps underneath
+    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 55px;"></div>'; 
     
     const visibleCols = scheduleColConfig.filter(c => c.visible);
     if (visibleCols.length === 0) return;
@@ -3078,7 +3079,6 @@ function renderDynamicHeaders() {
         textSpan.style.textOverflow = 'ellipsis';
         cell.appendChild(textSpan);
 
-        // 🟢 THE FIX: Do not add a resizer handle to the very last column
         if (col.id !== lastColId) {
             const resizer = document.createElement('div');
             resizer.className = 'col-resizer';
@@ -3101,45 +3101,23 @@ function applyColumnWidths() {
     }
     
     let css = '';
-    const visibleCols = scheduleColConfig.filter(c => c.visible);
-    if (visibleCols.length === 0) return;
-    const lastColId = visibleCols[visibleCols.length - 1].id;
-    
     scheduleColConfig.forEach(col => {
         if (col.visible) {
-            // 🟢 THE FIX: The last column gets "flex: 1" so it auto-fills the screen edge!
-            if (col.id === lastColId) {
-                css += `
-                    [data-col-index="${col.id}"] { 
-                        flex: 1 !important; 
-                        min-width: ${col.width}px !important;
-                        max-width: none !important;
-                        box-sizing: border-box !important;
-                    }
-                    .header-cell[data-col-id="${col.id}"] {
-                        flex: 1 !important; 
-                        min-width: ${col.width}px !important;
-                        max-width: none !important;
-                        box-sizing: border-box !important;
-                    }
-                `;
-            } else {
-                // All other columns get strict hardcoded widths based on your drags
-                css += `
-                    [data-col-index="${col.id}"] { 
-                        flex: 0 0 ${col.width}px !important; 
-                        width: ${col.width}px !important; 
-                        max-width: ${col.width}px !important;
-                        box-sizing: border-box !important;
-                    }
-                    .header-cell[data-col-id="${col.id}"] {
-                        flex: 0 0 ${col.width}px !important; 
-                        width: ${col.width}px !important; 
-                        max-width: ${col.width}px !important;
-                        box-sizing: border-box !important;
-                    }
-                `;
-            }
+            // ALL columns operate purely on percentages now to lock the outer boundaries
+            css += `
+                [data-col-index="${col.id}"] { 
+                    flex: 0 0 ${col.width}% !important; 
+                    width: ${col.width}% !important; 
+                    max-width: ${col.width}% !important;
+                    box-sizing: border-box !important;
+                }
+                .header-cell[data-col-id="${col.id}"] {
+                    flex: 0 0 ${col.width}% !important; 
+                    width: ${col.width}% !important; 
+                    max-width: ${col.width}% !important;
+                    box-sizing: border-box !important;
+                }
+            `;
         }
     });
     styleEl.innerHTML = css;
@@ -3147,20 +3125,34 @@ function applyColumnWidths() {
 
 function initColumnResizers() {
     const resizers = document.querySelectorAll('.col-resizer');
-    let startX, startWidth, colId, headerCell, activeResizer;
+    let startX, startWidth1, startWidth2, col1, col2, activeResizer, gridWidth;
     
     resizers.forEach(resizer => {
         resizer.addEventListener('mousedown', (e) => {
-            // Only allow dragging if the Edit Mode is active!
             if (!document.body.classList.contains('layout-edit-mode')) return;
             
             e.preventDefault();
             activeResizer = resizer;
             activeResizer.classList.add('active-drag');
-            headerCell = resizer.parentElement;
-            colId = parseInt(headerCell.getAttribute('data-col-id'));
+            
+            const headerCell = resizer.parentElement;
+            const colId = parseInt(headerCell.getAttribute('data-col-id'));
+            
+            // Find current column and the adjacent column to the right
+            const visibleCols = scheduleColConfig.filter(c => c.visible);
+            const colIndex = visibleCols.findIndex(c => c.id === colId);
+            
+            if (colIndex === -1 || colIndex === visibleCols.length - 1) return; 
+            
+            col1 = visibleCols[colIndex];
+            col2 = visibleCols[colIndex + 1];
+            
             startX = e.pageX;
-            startWidth = headerCell.offsetWidth;
+            startWidth1 = col1.width;
+            startWidth2 = col2.width;
+            
+            // Calculate the total available pixel space of the grid
+            gridWidth = document.getElementById('dynamic-frozen-grid').offsetWidth - 55;
             
             document.addEventListener('mousemove', mouseMoveHandler);
             document.addEventListener('mouseup', mouseUpHandler);
@@ -3168,12 +3160,22 @@ function initColumnResizers() {
     });
     
     function mouseMoveHandler(e) {
-        // Prevent columns from being dragged smaller than 60 pixels
-        const newWidth = Math.max(60, startWidth + (e.pageX - startX)); 
-        let colConfig = scheduleColConfig.find(c => c.id === colId);
-        if (colConfig) {
-            colConfig.width = newWidth;
-            applyColumnWidths(); // Re-render the CSS live as you drag
+        if (!col1 || !col2) return;
+        
+        // Find how many pixels you moved the mouse
+        const deltaX = e.pageX - startX;
+        
+        // Convert those pixels into a percentage of the total screen width
+        const deltaPct = (deltaX / gridWidth) * 100;
+        
+        const newWidth1 = startWidth1 + deltaPct;
+        const newWidth2 = startWidth2 - deltaPct;
+        
+        // Ensure columns don't crush each other into negative space (min 2%)
+        if (newWidth1 > 2 && newWidth2 > 2) {
+            col1.width = newWidth1;
+            col2.width = newWidth2;
+            applyColumnWidths(); 
         }
     }
     
