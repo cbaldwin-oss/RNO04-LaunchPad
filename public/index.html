@@ -1019,6 +1019,40 @@ html, body {
     display: flex;
     flex-direction: column;
 }
+/* --- RESIZABLE COLUMNS CSS --- */
+    .col-resizer {
+        width: 8px;
+        height: 100%;
+        position: absolute;
+        right: 0;
+        top: 0;
+        cursor: col-resize;
+        background-color: transparent;
+        z-index: 10;
+    }
+    .col-resizer:hover, .col-resizer:active {
+        background-color: #fbc02d; /* Highlights yellow when dragged */
+    }
+    .header-cell {
+        position: relative; /* Keeps the resizer locked to the right side of each cell */
+    }
+    
+    /* Allow the grid to horizontally scroll when columns are expanded */
+    #schedule-view {
+        overflow-x: auto;
+    }
+    
+    /* Removes the hardcoded centering constraints so the grid expands dynamically */
+    .frozen-bar {
+        width: max-content !important;
+        min-width: 100% !important;
+        margin: 0 !important; 
+    }
+    .frozen-grid, .cell-row {
+        width: max-content !important;
+        min-width: 100% !important;
+        flex-wrap: nowrap !important;
+    }
 </style>
 </head>
 <body>
@@ -1416,16 +1450,36 @@ html, body {
 <script>
 
 const defaultScheduleConfig = [
-    { id: 1, name: 'Time', visible: true },
-    { id: 2, name: 'Place', visible: true },
-    { id: 3, name: 'Activity', visible: true },
-    { id: 4, name: 'Asset', visible: true },
-    { id: 5, name: 'Status', visible: true },
-    { id: 6, name: 'Trade Partners', visible: true },
-    { id: 7, name: 'Result', visible: true },
-    { id: 8, name: 'Notes', visible: true },
-    { id: 9, name: 'Duration', visible: true }
+    { id: 1, name: 'Time', visible: true, width: 90 },
+    { id: 2, name: 'Place', visible: true, width: 110 },
+    { id: 3, name: 'Activity', visible: true, width: 160 },
+    { id: 4, name: 'Asset', visible: true, width: 160 },
+    { id: 5, name: 'Status', visible: true, width: 130 },
+    { id: 6, name: 'Trade Partners', visible: true, width: 140 },
+    { id: 7, name: 'Result', visible: true, width: 110 },
+    { id: 8, name: 'Notes', visible: true, width: 220 },
+    { id: 9, name: 'Duration', visible: true, width: 90 }
 ];
+
+async function loadScheduleConfig() {
+    try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getScheduleConfig&t=${new Date().getTime()}`);
+        const data = await response.json();
+        if (data.status === 'success' && data.data) {
+            scheduleColConfig = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+            if (!scheduleColConfig.find(c => c.id === 9)) {
+                scheduleColConfig.push({ id: 9, name: 'Duration', visible: true, width: 90 });
+            }
+            // Add default widths to older legacy configurations seamlessly
+            scheduleColConfig.forEach(col => {
+                if (!col.width) col.width = defaultScheduleConfig.find(d => d.id === col.id)?.width || 120;
+            });
+        }
+    } catch (e) {
+        console.error("Failed to load Schedule Config from cloud. Using defaults.", e);
+    }
+    renderDynamicHeaders();
+}
 
 let scheduleColConfig = defaultScheduleConfig; // Now defaults to global variable
 
@@ -2940,23 +2994,110 @@ function renderSidebarFilters() {
 
 function renderDynamicHeaders() {
     const headerGrid = document.getElementById('dynamic-frozen-grid');
-    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 16px;"></div>';
+    // Account for the drag handle and checkbox
+    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 45px;"></div>'; 
     
     scheduleColConfig.forEach(col => {
-        if (!col.visible) return; // Skip hidden columns
+        if (!col.visible) return;
         
-        // Add the column header
         const cell = document.createElement('div');
         cell.className = 'header-cell';
-        cell.innerText = col.name;
-        headerGrid.appendChild(cell);
+        cell.setAttribute('data-col-id', col.id);
         
-        // Add the vertical separator
-        const sep = document.createElement('span');
-        sep.className = 'sep';
-        sep.innerText = '|';
-        headerGrid.appendChild(sep);
+        const textSpan = document.createElement('span');
+        textSpan.innerText = col.name;
+        textSpan.style.display = 'block';
+        textSpan.style.overflow = 'hidden';
+        textSpan.style.textOverflow = 'ellipsis';
+        cell.appendChild(textSpan);
+
+        // Add the invisible drag handle
+        const resizer = document.createElement('div');
+        resizer.className = 'col-resizer';
+        cell.appendChild(resizer);
+        
+        headerGrid.appendChild(cell);
     });
+    
+    applyColumnWidths();
+    initColumnResizers();
+}
+
+function applyColumnWidths() {
+    let styleEl = document.getElementById('dynamic-col-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dynamic-col-styles';
+        document.head.appendChild(styleEl);
+    }
+    
+    let css = '';
+    scheduleColConfig.forEach(col => {
+        if (col.visible) {
+            // Injects dynamic CSS rules to force the width across the entire column simultaneously
+            css += `
+                [data-col-index="${col.id}"] { 
+                    flex: 0 0 ${col.width}px !important; 
+                    width: ${col.width}px !important; 
+                    max-width: ${col.width}px !important;
+                }
+                .header-cell[data-col-id="${col.id}"] {
+                    flex: 0 0 ${col.width}px !important; 
+                    width: ${col.width}px !important; 
+                    max-width: ${col.width}px !important;
+                }
+            `;
+        }
+    });
+    styleEl.innerHTML = css;
+}
+
+function initColumnResizers() {
+    const resizers = document.querySelectorAll('.col-resizer');
+    let startX, startWidth, colId, headerCell;
+    
+    resizers.forEach(resizer => {
+        resizer.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            headerCell = resizer.parentElement;
+            colId = parseInt(headerCell.getAttribute('data-col-id'));
+            startX = e.pageX;
+            startWidth = headerCell.offsetWidth;
+            
+            document.addEventListener('mousemove', mouseMoveHandler);
+            document.addEventListener('mouseup', mouseUpHandler);
+        });
+    });
+    
+    function mouseMoveHandler(e) {
+        // Prevent columns from being dragged smaller than 60 pixels
+        const newWidth = Math.max(60, startWidth + (e.pageX - startX)); 
+        let colConfig = scheduleColConfig.find(c => c.id === colId);
+        if (colConfig) {
+            colConfig.width = newWidth;
+            applyColumnWidths(); // Re-render the CSS live as you drag
+        }
+    }
+    
+    async function mouseUpHandler() {
+        document.removeEventListener('mousemove', mouseMoveHandler);
+        document.removeEventListener('mouseup', mouseUpHandler);
+        
+        document.getElementById('saveIndicator').innerText = "Saving Layout...";
+        document.getElementById('saveIndicator').style.display = 'inline-block';
+        
+        // Push the new layout payload directly back to Google Sheets!
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'setScheduleConfig', data: scheduleColConfig }),
+                mode: 'no-cors'
+            });
+            document.getElementById('saveIndicator').innerText = "Saved";
+        } catch (e) {
+            console.error("Failed to save width", e);
+        }
+    }
 }
 
 /**
@@ -3621,26 +3762,6 @@ async function verifyPermission(email) {
     // Save it globally for the filter
     window.userCompany = data.company; 
     return { isAuthorized: true, isAdmin: data.is_admin, company: data.company };
-}
-
-// --- NEW: Fetch config from Google Sheets on load (WITH CACHE BUSTER) ---
-async function loadScheduleConfig() {
-    try {
-        // Appending a timestamp forces the browser to bypass its cache and fetch fresh data
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getScheduleConfig&t=${new Date().getTime()}`);
-        const data = await response.json();
-        if (data.status === 'success' && data.data) {
-            scheduleColConfig = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
-            // Inject Col 9 automatically if it's missing from their old config
-            if (!scheduleColConfig.find(c => c.id === 9)) {
-                scheduleColConfig.push({ id: 9, name: 'Duration', visible: true });
-            }
-        }
-    } catch (e) {
-        console.error("Failed to load Schedule Config from cloud. Using defaults.", e);
-    }
-    // Render headers immediately after we have the cloud data
-    renderDynamicHeaders();
 }
 
 async function loadAppConfig() {
