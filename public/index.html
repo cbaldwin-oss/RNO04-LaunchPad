@@ -1104,6 +1104,38 @@ html, body {
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         box-sizing: border-box;
     }
+    /* ========================================================================= */
+    /* 🟢 MASTER ALIGNMENT FIX: FORCES HEADER AND ROWS TO BE IDENTICAL SIZES     */
+    /* ========================================================================= */
+    
+    /* 1. Force the Header container to exactly match the Week container */
+    .frozen-bar {
+        width: 95% !important; 
+        margin: 0 auto !important; 
+        left: 0 !important;
+        right: 0 !important;
+        padding: 0 30px !important;
+        box-sizing: border-box !important;
+        /* Matches the 2px border of the week container so internal math is identical */
+        border-left: 2px solid transparent !important; 
+        border-right: 2px solid transparent !important; 
+    }
+
+    /* 2. Force the gaps and widths to be identical across both the header and rows */
+    .frozen-grid, .cell-row {
+        width: 100% !important;
+        flex-wrap: nowrap !important;
+        box-sizing: border-box !important;
+        gap: 5px !important; /* 🟢 FORCES EXACT 5px GAP MATCH */
+        margin: 0 !important;
+    }
+    
+    .cell-row {
+        display: flex !important;
+        align-items: stretch !important;
+        padding: 6px 0 !important;
+        border-bottom: 2px solid #b0bec5 !important;
+    }
 </style>
 </head>
 <body>
