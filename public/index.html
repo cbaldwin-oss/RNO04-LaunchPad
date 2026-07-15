@@ -3136,18 +3136,22 @@ function applyColumnWidths() {
     let css = '';
     scheduleColConfig.forEach(col => {
         if (col.visible) {
-            // ALL columns operate purely on percentages now to lock the outer boundaries
+            // 🟢 THE FIX: "flex: col.width 1 0%" uses proportional weight instead of hard widths.
+            // This forces the columns to perfectly distribute ONLY the remaining space 
+            // after the gaps/spacers are accounted for, preventing right-edge overflow!
             css += `
                 [data-col-index="${col.id}"] { 
-                    flex: 0 0 ${col.width}% !important; 
-                    width: ${col.width}% !important; 
-                    max-width: ${col.width}% !important;
+                    flex: ${col.width} 1 0% !important; 
+                    width: auto !important; 
+                    max-width: none !important;
+                    min-width: 0 !important;
                     box-sizing: border-box !important;
                 }
                 .header-cell[data-col-id="${col.id}"] {
-                    flex: 0 0 ${col.width}% !important; 
-                    width: ${col.width}% !important; 
-                    max-width: ${col.width}% !important;
+                    flex: ${col.width} 1 0% !important; 
+                    width: auto !important; 
+                    max-width: none !important;
+                    min-width: 0 !important;
                     box-sizing: border-box !important;
                 }
             `;
@@ -3158,7 +3162,7 @@ function applyColumnWidths() {
 
 function initColumnResizers() {
     const resizers = document.querySelectorAll('.col-resizer');
-    let startX, startWidth1, startWidth2, col1, col2, activeResizer, gridWidth;
+    let startX, startWidth1, startWidth2, col1, col2, activeResizer, flexGridWidth;
     
     resizers.forEach(resizer => {
         resizer.addEventListener('mousedown', (e) => {
@@ -3184,8 +3188,10 @@ function initColumnResizers() {
             startWidth1 = col1.width;
             startWidth2 = col2.width;
             
-            // Calculate the total available pixel space of the grid
-            gridWidth = document.getElementById('dynamic-frozen-grid').offsetWidth - 55;
+            // 🟢 THE FIX: Calculate the EXACT flexible pixel area 
+            // (Total Grid Width minus the 50px Spacer minus the 5px gaps between columns)
+            const totalGaps = 5 * (visibleCols.length - 1);
+            flexGridWidth = document.getElementById('dynamic-frozen-grid').offsetWidth - 50 - totalGaps;
             
             document.addEventListener('mousemove', mouseMoveHandler);
             document.addEventListener('mouseup', mouseUpHandler);
@@ -3198,8 +3204,8 @@ function initColumnResizers() {
         // Find how many pixels you moved the mouse
         const deltaX = e.pageX - startX;
         
-        // Convert those pixels into a percentage of the total screen width
-        const deltaPct = (deltaX / gridWidth) * 100;
+        // Convert those pixels into a percentage of the flexible space
+        const deltaPct = (deltaX / flexGridWidth) * 100;
         
         const newWidth1 = startWidth1 + deltaPct;
         const newWidth2 = startWidth2 - deltaPct;
