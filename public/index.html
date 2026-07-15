@@ -4712,8 +4712,20 @@ function addRowsToContainer(container, dayLabel, anchorBtn = null, startIdx = 0,
                     saveCell(element, element.value, col, true);
                 };
             }
+            else if (col === 9) {
+                // 🟢 THE FIX: Generates a locked, non-editable text input for Col 9 (Duration)
+                element = document.createElement('input');
+                element.type = 'text';
+                element.id = cellId;
+                element.setAttribute('data-col-index', col);
+                element.readOnly = true;              // Locks the field from typing
+                element.tabIndex = -1;                // Prevents tabbing into it
+                element.style.pointerEvents = 'none'; // Prevents mouse clicks entirely
+                element.style.textAlign = 'center';   // Matches the status column look
+                element.style.fontWeight = 'bold';
+            }
             else {
-                // Generates a standard Text Input for Col 9 (Duration) and any future columns
+                // Generates a standard Text Input for any future columns
                 element = document.createElement('input');
                 element.type = 'text';
                 element.id = cellId;
