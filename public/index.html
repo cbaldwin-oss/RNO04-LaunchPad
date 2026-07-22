@@ -1021,8 +1021,21 @@ html, body {
     display: flex;
     flex-direction: column;
 }
-
-/* --- RESIZABLE COLUMNS CSS --- */
+/* --- DESKTOP CROPPER ZOOM FIX --- */
+    .responsive-crop-img {
+        width: 100%;
+        height: auto;
+    }
+    
+    /* On screens larger than an iPad, constrain the height so it doesn't zoom in */
+    @media (min-width: 1025px) {
+        .responsive-crop-img {
+            width: auto !important;
+            max-height: 65vh !important;
+        }
+    }
+ 
+ /* --- RESIZABLE COLUMNS CSS --- */
     .col-resizer {
         width: 12px;
         height: 100%;
@@ -1104,6 +1117,7 @@ html, body {
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         box-sizing: border-box;
     }
+
     /* ========================================================================= */
     /* 🟢 MASTER ALIGNMENT FIX: FORCES HEADER AND ROWS TO BE IDENTICAL SIZES     */
     /* ========================================================================= */
@@ -1136,6 +1150,156 @@ html, body {
         padding: 6px 0 !important;
         border-bottom: 2px solid #b0bec5 !important;
     }
+
+    /* --- DARK MODE OVERRIDES --- */
+body.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+}
+
+/* Base structural elements */
+body.dark-mode .header,
+body.dark-mode #sidebar,
+body.dark-mode #filter-sidebar,
+body.dark-mode #filter-collapsed,
+body.dark-mode .subheader,
+body.dark-mode #app-body,
+body.dark-mode .rows-container,
+body.dark-mode .week-content,
+body.dark-mode .week-container,
+body.dark-mode .frozen-bar,
+body.dark-mode .date-header,
+body.dark-mode .tracker-container,
+body.dark-mode .modal-box,
+body.dark-mode #auth-prompt,
+body.dark-mode #admin-panel,
+body.dark-mode #ready-activities-panel,
+body.dark-mode #history-menu {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+    color: #e0e0e0 !important;
+}
+
+/* Inputs and interactive elements */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: #2c2c2c !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+body.dark-mode input:focus, 
+body.dark-mode select:focus, 
+body.dark-mode textarea:focus {
+    background-color: #383838 !important;
+    border-color: #4caf50 !important; /* Green highlight to match theme */
+}
+
+/* Preserve column color classes in dark mode so status colors remain visible */
+body.dark-mode select.bg-green, body.dark-mode input.bg-green, body.dark-mode textarea.bg-green { background-color: #c8e6c9 !important; color: #1b5e20 !important; }
+body.dark-mode select.bg-yellow, body.dark-mode input.bg-yellow, body.dark-mode textarea.bg-yellow { background-color: #fff9c4 !important; color: #f57f17 !important; }
+body.dark-mode select.bg-blue, body.dark-mode input.bg-blue, body.dark-mode textarea.bg-blue { background-color: #e3f2fd !important; color: #0d47a1 !important; }
+body.dark-mode select.bg-red, body.dark-mode input.bg-red, body.dark-mode textarea.bg-red { background-color: #ffcdd2 !important; color: #b71c1c !important; }
+body.dark-mode select.bg-grey, body.dark-mode input.bg-grey, body.dark-mode textarea.bg-grey { background-color: #f5f5f5 !important; color: #616161 !important; }
+body.dark-mode select.bg-filled, body.dark-mode input.bg-filled, body.dark-mode textarea.bg-filled { background-color: #e1f5fe !important; color: #01579b !important; }
+
+/* Text overrides */
+body.dark-mode .header-center span,
+body.dark-mode .date-header,
+body.dark-mode h2,
+body.dark-mode h3 {
+    color: #81c784 !important; /* Lighter green for readability on dark */
+}
+
+body.dark-mode .nav-text,
+body.dark-mode .view-btn,
+body.dark-mode .filter-header-item {
+    color: #aaa !important;
+}
+
+body.dark-mode .nav-item:hover,
+body.dark-mode .nav-item.active {
+    background-color: #2c2c2c !important;
+    color: #81c784 !important;
+    border-left-color: #81c784 !important;
+}
+
+body.dark-mode .view-btn.active {
+    color: #81c784 !important;
+    border-bottom-color: #81c784 !important;
+}
+
+/* Grid and cell rows */
+body.dark-mode .cell-row {
+    border-bottom: 2px solid #333 !important;
+    background-color: #1e1e1e !important;
+}
+
+body.dark-mode .cell-row:hover {
+    background-color: #2a2a2a !important;
+}
+
+/* Tools and Buttons */
+body.dark-mode .tool-btn {
+    background-color: #2c2c2c !important;
+    color: #e0e0e0 !important;
+    border-color: #555 !important;
+}
+
+body.dark-mode .tool-btn:hover {
+    background-color: #383838 !important;
+}
+
+/* --- ATTRIBUTES PAGE & TABLES OVERRIDES --- */
+body.dark-mode #attributes-view,
+body.dark-mode .attributes-container,
+body.dark-mode .data-table-container,
+body.dark-mode table {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+}
+
+/* Table Headers & Borders */
+body.dark-mode th {
+    background-color: #2c2c2c !important;
+    color: #81c784 !important; /* Muted Green for headers */
+    border-bottom: 2px solid #4caf50 !important;
+}
+
+body.dark-mode td,
+body.dark-mode tr {
+    border-color: #333 !important;
+    background-color: transparent !important;
+}
+
+/* Alternate row striping for tables */
+body.dark-mode tr:nth-child(even) td {
+    background-color: #252525 !important;
+}
+body.dark-mode tr:hover td {
+    background-color: #333 !important;
+}
+
+/* --- EQUIPMENT TRACKER PHASES --- */
+/* Targets the dividers and headers between phases */
+body.dark-mode .phase-header,
+body.dark-mode .phase-divider,
+body.dark-mode .group-header,
+body.dark-mode .section-title {
+    background-color: #252525 !important;
+    color: #81c784 !important;
+    border-top: 2px solid #444 !important;
+    border-bottom: 2px solid #444 !important;
+    text-shadow: 1px 1px 2px #000 !important;
+}
+
+/* Mute the specific phase row if it's a solid block */
+body.dark-mode .phase-row {
+    background: linear-gradient(90deg, #1e1e1e, #2c2c2c) !important;
+    border-left: 4px solid #4caf50 !important;
+}
+    
 </style>
 </head>
 <body>
@@ -1148,6 +1312,9 @@ html, body {
         <span>LaunchPad</span>
     </div>
     <div class="header-right">
+        <button id="dark-mode-toggle" class="view-btn" onclick="toggleDarkMode()" style="font-size: 18px; margin-right: 15px;" title="Toggle Dark Mode">
+        🌙
+    </button>
         <button id="admin-share-btn" class="view-btn" style="display: none; color: #01579b;" onclick="toggleAdminPanel()">
             👤 Manage Access
         </button>
@@ -1185,10 +1352,6 @@ html, body {
 
     
     <div style="margin-top: auto; width: 100%;">
-        <div id="nav-settings" class="nav-item" onclick="openScheduleConfigModal()" style="display: none; border-top: 1px solid #eee;">
-    <span class="nav-icon">⚙️</span>
-    <span class="nav-text">Settings</span>
-</div>
         
         <div class="nav-item" onclick="logout()" style="border-top: 1px solid #eee;">
             <span class="nav-icon" style="color: #d32f2f;">🚪</span> <span class="nav-text" style="color: #d32f2f; font-weight: bold;">Logout</span>
@@ -1346,7 +1509,7 @@ html, body {
 <div id="dashboard-view" style="display: none; height: 100%; width: 100%; overflow: hidden;">
     <iframe 
         id="streamlit-iframe"
-        src="https://switch-criticalarc-cxdashboard.streamlit.app/?embed=true&embed_options=light_theme" 
+        src="https://criticalarc-stream-cxdashboard.streamlit.app/?embed=true&embed_options=light_theme" 
         width="100%" 
         height="100%" 
         frameborder="0"
@@ -1559,11 +1722,21 @@ async function loadScheduleConfig() {
         const data = await response.json();
         if (data.status === 'success' && data.data) {
             scheduleColConfig = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+            
             if (!scheduleColConfig.find(c => c.id === 9)) {
                 scheduleColConfig.push({ id: 9, name: 'Duration', visible: true, width: 5 });
             }
             
-            // Auto-Normalize: If old config has pixel values (e.g. > 100 sum), recalculate them into percentages
+            // 🟢 THE FIX: Guarantee every column has a valid width number!
+            // If your database has an old config without widths, this fixes it instantly.
+            scheduleColConfig.forEach(col => {
+                if (!col.width || isNaN(col.width)) {
+                    const def = defaultScheduleConfig.find(d => d.id === col.id);
+                    col.width = def ? def.width : 10;
+                }
+            });
+            
+            // Auto-Normalize: If the old config had pixel values (e.g. > 100 sum), recalculate them into percentages
             let totalWidth = scheduleColConfig.reduce((acc, col) => acc + (col.width || 0), 0);
             if (totalWidth > 105) {
                 scheduleColConfig.forEach(col => { col.width = ((col.width / totalWidth) * 100); });
@@ -1574,6 +1747,43 @@ async function loadScheduleConfig() {
     }
     renderDynamicHeaders();
 }
+
+function toggleDarkMode() {
+    const body = document.body;
+    const btn = document.getElementById('dark-mode-toggle');
+    const isDark = body.classList.toggle('dark-mode');
+    
+    // Swap icon based on state
+    if (btn) btn.innerText = isDark ? '☀️' : '🌙';
+    
+    // Save preference to local storage
+    localStorage.setItem('launchpad_dark_mode', isDark ? 'enabled' : 'disabled');
+    
+    // Broadcast to ALL iframes on the page (Equipment Tracker, Attributes, etc.)
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'TOGGLE_DARK_MODE', isDark: isDark }, '*');
+        }
+    });
+
+    // Re-run the color logic on every colored cell so already-rendered rows
+    // immediately pick up the correct light/dark colors instead of waiting
+    // for the next edit.
+    document.querySelectorAll('.cell-row select, .cell-row input[type="text"], .cell-row textarea, .cell-row .status-cell').forEach(el => {
+        const val = el.tagName === 'SPAN' ? el.innerText : el.value;
+        applyCellColor(el, val);
+    });
+}
+
+// Auto-check preference on load
+window.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('launchpad_dark_mode') === 'enabled') {
+        document.body.classList.add('dark-mode');
+        const btn = document.getElementById('dark-mode-toggle');
+        if (btn) btn.innerText = '☀️';
+    }
+});
 
 let scheduleColConfig = defaultScheduleConfig; // Now defaults to global variable
 
@@ -2302,17 +2512,20 @@ function displayAssetDetails(assetObj, assetName) {
         groups[gName].forEach(attr => {
             const item = document.createElement('div');
             const rawValue = String(attr.value || "").trim();
-            const isTBD = rawValue.toUpperCase() === 'TBD';
-            const safeKey = attr.originalKey.replace(/'/g, "\\'");
-            const safeGName = gName.replace(/"/g, '&quot;');
             
+            // Treat empty strings and "TBD" as missing/red
+            const isTBD = rawValue.toUpperCase() === 'TBD' || rawValue === '';
+            const safeKey = attr.originalKey.replace(/'/g, "\\'");
+            const safeGName = gName.replace(/"/g, '"');
+            
+            // Added CSS transitions so the colors fade smoothly
             item.style.cssText = isTBD 
-                ? "background: #ffebee; padding: 10px 15px; border-radius: 6px; border: 1px solid #d32f2f; display: flex; flex-direction: column;"
-                : "background: #f9f9f9; padding: 10px 15px; border-radius: 6px; border: 1px solid #eee; display: flex; flex-direction: column;";
+                ? "background: #ffebee; padding: 10px 15px; border-radius: 6px; border: 1px solid #d32f2f; display: flex; flex-direction: column; transition: all 0.3s;"
+                : "background: #f9f9f9; padding: 10px 15px; border-radius: 6px; border: 1px solid #eee; display: flex; flex-direction: column; transition: all 0.3s;";
             
             const valueStyle = isTBD 
-                ? "font-size: 14px; color: #d32f2f; font-weight: 800; border: none; background: transparent; outline: none; width: 100%; border-bottom: 1px dashed #d32f2f;" 
-                : "font-size: 14px; color: #111; font-weight: 500; border: none; background: transparent; outline: none; width: 100%; border-bottom: 1px dashed #ccc;";
+                ? "font-size: 14px; color: #d32f2f; font-weight: 800; border: none; background: transparent; outline: none; width: 100%; border-bottom: 1px dashed #d32f2f; transition: all 0.3s;" 
+                : "font-size: 14px; color: #111; font-weight: 500; border: none; background: transparent; outline: none; width: 100%; border-bottom: 1px dashed #ccc; transition: all 0.3s;";
             
             item.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -2322,13 +2535,43 @@ function displayAssetDetails(assetObj, assetName) {
             `;
             
             const inputField = item.querySelector('input');
-            inputField.addEventListener('input', () => document.getElementById('attr-save-btn').style.display = 'block');
-            inputField.addEventListener('focus', () => { inputField.style.borderBottomStyle = 'solid'; inputField.style.borderBottomColor = '#2e7d32'; });
-            inputField.addEventListener('blur', () => { inputField.style.borderBottomStyle = 'dashed'; inputField.style.borderBottomColor = isTBD ? '#d32f2f' : '#ccc'; });
+            
+            // --- THE FIX: DYNAMIC COLOR CHANGING ---
+            inputField.addEventListener('input', () => {
+                document.getElementById('attr-save-btn').style.display = 'block';
+                
+                const currentVal = inputField.value.trim().toUpperCase();
+                const currentlyTBD = currentVal === 'TBD' || currentVal === '';
+                
+                if (currentlyTBD) {
+                    item.style.background = '#ffebee';
+                    item.style.borderColor = '#d32f2f';
+                    inputField.style.color = '#d32f2f';
+                    inputField.style.fontWeight = '800';
+                    if (document.activeElement !== inputField) inputField.style.borderBottomColor = '#d32f2f';
+                } else {
+                    item.style.background = '#f9f9f9';
+                    item.style.borderColor = '#eee';
+                    inputField.style.color = '#111';
+                    inputField.style.fontWeight = '500';
+                    if (document.activeElement !== inputField) inputField.style.borderBottomColor = '#ccc';
+                }
+            });
+            
+            inputField.addEventListener('focus', () => { 
+                inputField.style.borderBottomStyle = 'solid'; 
+                inputField.style.borderBottomColor = '#2e7d32'; 
+            });
+            
+            inputField.addEventListener('blur', () => { 
+                const currentlyTBD = inputField.value.trim().toUpperCase() === 'TBD' || inputField.value.trim() === '';
+                inputField.style.borderBottomStyle = 'dashed'; 
+                inputField.style.borderBottomColor = currentlyTBD ? '#d32f2f' : '#ccc'; 
+            });
             
             groupGrid.appendChild(item);
         });
-        
+
         section.appendChild(groupGrid);
         container.appendChild(section);
     });
@@ -2373,73 +2616,6 @@ function startQRScanner(assetName, groupName) { // --- NEW: Accepts groupName --
         console.error("Camera access error:", err);
         viewport.innerHTML = `<p style="color: #d32f2f; padding: 20px; text-align: center;">Camera access denied or unavailable.</p>`;
     });
-}
-
-function showQRMappingUI(decodedText) {
-    // Advanced Lookahead: Stops grabbing text the moment it hits a comma, newline, pipe, or the next recognizable keyword
-    let modelMatch = decodedText.match(/(?:model|mn|ref|p\/n|part(?:\s*no\.?))[\s:=]+(.*?)(?=\s*(?:serial|s\/n|sn|mfg|manufacturer|make|date|volts|amps|hz)|[,;\n|]|$)/i);
-    let serialMatch = decodedText.match(/(?:serial|sn|s\/n)[\s:=]+(.*?)(?=\s*(?:model|mn|ref|p\/n|part|mfg|manufacturer|make|date|volts|amps|hz)|[,;\n|]|$)/i);
-    let mfgMatch = decodedText.match(/(?:manufacturer|mfg|make)[\s:=]+(.*?)(?=\s*(?:model|mn|ref|p\/n|part|serial|s\/n|sn|date|volts|amps|hz)|[,;\n|]|$)/i);
-
-    let model = modelMatch ? modelMatch[1].replace(/[\/\\\-\s]+$/, '').trim() : "";
-    let serial = serialMatch ? serialMatch[1].replace(/[\/\\\-\s]+$/, '').trim() : "";
-    let mfg = mfgMatch ? mfgMatch[1].replace(/[\/\\\-\s]+$/, '').trim() : "";
-
-    // --- NEW: Filter inputs strictly by the active group ---
-    const allInputs = Array.from(document.querySelectorAll('.attr-input-field'));
-    const attrInputs = allInputs.filter(input => {
-        const inputGroup = input.getAttribute('data-group').replace(/&quot;/g, '"');
-        return !window.multiScanState.groupName || inputGroup === window.multiScanState.groupName;
-    });
-
-    let optionsHtml = '<option value="">-- Do Not Assign --</option>';
-    attrInputs.forEach(input => {
-        const key = input.getAttribute('data-key');
-        let display = key.includes(':') ? key.split(':')[1].trim() : key;
-        optionsHtml += `<option value="${key.replace(/"/g, '&quot;')}">${display}</option>`;
-    });
-
-    const viewport = document.getElementById('scanner-viewport');
-    viewport.innerHTML = `
-        <div style="padding: 15px; width: 100%; box-sizing: border-box; background:#fff;">
-            <h3 style="margin-top:0; color:#2e7d32; font-size:16px;">Map QR Data</h3>
-            <div style="font-size:11px; color:#666; word-break:break-all; background:#f1f3f4; padding:8px; border-radius:4px; margin-bottom:15px; border:1px solid #ddd; max-height: 60px; overflow-y:auto;">
-                <strong>Raw Scanned Text:</strong><br> ${decodedText}
-            </div>
-            
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                ${createMappingRow('Manufacturer', 'qr-map-manufacturer', mfg, optionsHtml)}
-                ${createMappingRow('Model', 'qr-map-model', model, optionsHtml)}
-                ${createMappingRow('Serial', 'qr-map-serial', serial, optionsHtml)}
-                ${createMappingRow('Raw Text', 'qr-map-rawtext', decodedText, optionsHtml)}
-            </div>
-            
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button onclick="stopScanner()" style="flex:1; padding:12px; background:#f5f5f5; color:#333; border:1px solid #ddd; border-radius:4px; font-weight:bold; cursor:pointer;">Cancel</button>
-                <button onclick="applyQRMapping()" style="flex:2; padding:12px; background:#2e7d32; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Apply to Attributes</button>
-            </div>
-        </div>
-    `;
-
-    setTimeout(() => {
-        const autoMap = (id, keywords) => {
-            const select = document.querySelector(`select[data-val-id="${id}"]`);
-            const valInput = document.getElementById(id);
-            if (!select || (!valInput.value.trim() && id !== 'qr-map-rawtext-val')) return;
-            
-            for (let i = 0; i < select.options.length; i++) {
-                const optText = select.options[i].text.toLowerCase();
-                if (keywords.some(kw => optText.includes(kw))) {
-                    select.selectedIndex = i;
-                    break;
-                }
-            }
-        };
-        
-        autoMap('qr-map-manufacturer-val', ['manufacturer', 'make', 'mfg']);
-        autoMap('qr-map-model-val', ['model', 'mn']);
-        autoMap('qr-map-serial-val', ['serial', 's/n', 'sn']);
-    }, 50);
 }
 
 function createMappingRow(label, value, optionsHtml) {
@@ -2569,17 +2745,24 @@ function showQRMappingUI(decodedText) {
     let serialMatch = decodedText.match(/(?:serial|sn|s\/n)[\s:=]+(.*?)(?=\s*(?:model|mn|ref|p\/n|part|mfg|manufacturer|make|date|volts|amps|hz)|[,;\n|]|$)/i);
     let mfgMatch = decodedText.match(/(?:manufacturer|mfg|make)[\s:=]+(.*?)(?=\s*(?:model|mn|ref|p\/n|part|serial|s\/n|sn|date|volts|amps|hz)|[,;\n|]|$)/i);
 
-    // Grab the text and strip away any trailing slashes or dashes that got caught
     let model = modelMatch ? modelMatch[1].replace(/[\/\\\-\s]+$/, '').trim() : "";
     let serial = serialMatch ? serialMatch[1].replace(/[\/\\\-\s]+$/, '').trim() : "";
     let mfg = mfgMatch ? mfgMatch[1].replace(/[\/\\\-\s]+$/, '').trim() : "";
 
-    const attrInputs = document.querySelectorAll('.attr-input-field');
+    // --- THE FIX: Filter inputs strictly by the active group ---
+    const allInputs = Array.from(document.querySelectorAll('.attr-input-field'));
+    const attrInputs = allInputs.filter(input => {
+        const inputGroup = input.getAttribute('data-group');
+        if (!inputGroup) return true;
+        // Check if the group name matches the section where the button was clicked
+        return !window.multiScanState.groupName || inputGroup.replace(/"/g, '"') === window.multiScanState.groupName;
+    });
+
     let optionsHtml = '<option value="">-- Do Not Assign --</option>';
     attrInputs.forEach(input => {
         const key = input.getAttribute('data-key');
         let display = key.includes(':') ? key.split(':')[1].trim() : key;
-        optionsHtml += `<option value="${key.replace(/"/g, '&quot;')}">${key.includes(':') ? key.split(':')[0].trim() + ' - ' : ''}${display}</option>`;
+        optionsHtml += `<option value="${key.replace(/"/g, '"')}">${display}</option>`;
     });
 
     const viewport = document.getElementById('scanner-viewport');
@@ -2791,18 +2974,18 @@ function renderMultiCropperUI(img) {
         </div>
         <p id="multi-instruction" style="text-align:center; font-weight:bold; color:#1976d2; margin: 8px 0; flex-shrink: 0; font-size: 13px;">Select an attribute to draw a box.</p>
         
-        <div id="crop-container" style="position:relative; width:100%; flex: 1; min-height: 0; overflow:auto; background: #000; border-radius: 8px;">
-            <div style="position: relative; display: block; width: 100%;">
-                <img id="crop-img" src="${img.src}" style="width:100%; height:auto; display:block; pointer-events:none;">
+        <div id="crop-container" style="position:relative; width:100%; flex: 1; min-height: 0; overflow:auto; background: #000; border-radius: 8px; text-align: center;">
+            <div style="position: relative; display: inline-block; max-width: 100%;">
+                <img id="crop-img" src="${img.src}" class="responsive-crop-img" style="display:block; pointer-events:none; margin: 0 auto;">
                 <div id="boxes-layer" style="position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:4;"></div>
                 <div id="current-box" style="position:absolute; border:2px dashed #ff9800; background:rgba(255,152,0,0.2); display:none; pointer-events:none; z-index:5;"></div>
                 <div id="crop-touch-layer" style="position:absolute; top:0; left:0; right:0; bottom:0; z-index:10; cursor: crosshair;"></div>
             </div>
         </div>
         
-        <div style="display:flex; gap:10px; margin-top:12px; flex-shrink: 0;">
-            <button onclick="clearMultiBoxes()" style="flex:1; padding: 12px; background: #f44336; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 15px;">Clear Boxes</button>
-            <button id="ocr-process-btn" onclick="processMultiCropAndRead()" style="flex:2; padding: 12px; background: #2e7d32; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 15px;">✅ Process <span id="box-count-badge">0</span> Boxes</button>
+        <div style="display:flex; gap:10px; margin-top:12px; flex-shrink: 0; flex-wrap: wrap;">
+            <button onclick="clearMultiBoxes()" style="flex:1; padding: 12px; background: #f44336; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px;">Clear</button>
+            <button id="ocr-process-btn" onclick="processMultiCropAndRead()" style="flex:2; padding: 12px; background: #2e7d32; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px;">✅ Process <span id="box-count-badge">0</span></button>
         </div>
         <p id="ocr-status-text" style="text-align:center; color:#666; font-size:12px; margin-top:6px; margin-bottom:0; flex-shrink: 0; min-height: 15px;"></p>
     `;
@@ -2986,36 +3169,141 @@ async function processMultiCropAndRead() {
     const status = document.getElementById('ocr-status-text');
     btn.disabled = true;
     
-    const imgEl = document.getElementById('crop-img');
-    const nw = imgEl.naturalWidth;
-    const nh = imgEl.naturalHeight;
+    const img = window.multiScanState.imageObj;
+    const nw = img.naturalWidth;
+    const nh = img.naturalHeight;
     const PADDING = 60;
     
-    status.innerText = `Processing all ${window.multiScanState.boxes.length} boxes simultaneously...`;
+    status.innerText = `Saving full photo to Drive...`;
 
-    // 🟢 THE FIX: Map all boxes to an array of promises so they run in parallel
+    // 1. Generate marked-up image canvas
+    const canvasFull = document.createElement('canvas');
+    canvasFull.width = nw;
+    canvasFull.height = nh;
+    const ctxFull = canvasFull.getContext('2d');
+    ctxFull.drawImage(img, 0, 0, nw, nh);
+
+    const lineW = Math.max(3, nw * 0.003); 
+    const fontSize = Math.max(12, nw * 0.008); 
+    ctxFull.lineWidth = lineW;
+    ctxFull.font = `bold ${fontSize}px Arial`;
+
+    const obstacles = [];
+    const boxesData = window.multiScanState.boxes.map(box => ({
+        display: box.display,
+        x: nw * box.rect.leftPct, y: nh * box.rect.topPct,
+        w: nw * box.rect.widthPct, h: nh * box.rect.heightPct
+    }));
+
+    boxesData.forEach(b => {
+        ctxFull.strokeStyle = '#00e676'; 
+        ctxFull.strokeRect(b.x, b.y, b.w, b.h);
+        ctxFull.fillStyle = 'rgba(0, 230, 118, 0.2)';
+        ctxFull.fillRect(b.x, b.y, b.w, b.h);
+        obstacles.push({ x: b.x, y: b.y, w: b.w, h: b.h });
+    });
+
+    const checkCollision = (rect) => {
+        if (rect.x < 0 || rect.y < 0 || rect.x + rect.w > nw || rect.y + rect.h > nh) return true; 
+        for (let obs of obstacles) {
+            if (rect.x < obs.x + obs.w && rect.x + rect.w > obs.x && rect.y < obs.y + obs.h && rect.y + rect.h > obs.y) return true; 
+        }
+        return false;
+    };
+
+    boxesData.forEach(b => {
+        const textWidth = ctxFull.measureText(b.display).width;
+        const padding = fontSize * 0.4;
+        const labelW = textWidth + (padding * 2);
+        const labelH = fontSize + (padding * 2);
+        const gap = lineW + 2; 
+
+        const candidates = [
+            { x: b.x, y: b.y - labelH - gap }, { x: b.x, y: b.y + b.h + gap },   
+            { x: b.x + b.w + gap, y: b.y }, { x: b.x - labelW - gap, y: b.y },
+            { x: b.x + b.w - labelW, y: b.y - labelH - gap }, { x: b.x + b.w - labelW, y: b.y + b.h + gap }    
+        ];
+
+        let chosenPos = null;
+        for (let pos of candidates) {
+            if (!checkCollision({ x: pos.x, y: pos.y, w: labelW, h: labelH })) { chosenPos = pos; break; }
+        }
+
+        if (!chosenPos) {
+            let clampedY = b.y - labelH - gap;
+            if (clampedY < 0) clampedY = b.y + b.h + gap; 
+            if (clampedY + labelH > nh) clampedY = Math.max(0, b.y - labelH); 
+            let clampedX = b.x;
+            if (clampedX + labelW > nw) clampedX = nw - labelW;
+            if (clampedX < 0) clampedX = 0;
+            chosenPos = { x: clampedX, y: clampedY };
+        }
+
+        obstacles.push({ x: chosenPos.x, y: chosenPos.y, w: labelW, h: labelH });
+
+        ctxFull.fillStyle = '#00e676';
+        ctxFull.fillRect(chosenPos.x, chosenPos.y, labelW, labelH);
+        ctxFull.fillStyle = '#000000';
+        ctxFull.textBaseline = "top";
+        ctxFull.fillText(b.display, chosenPos.x + padding, chosenPos.y + padding);
+    });
+
+    const base64Image = canvasFull.toDataURL('image/jpeg', 0.85); 
+    const uniqueAttributes = [...new Set(window.multiScanState.boxes.map(b => b.display))].slice(0, 3).join('_');
+    const filePrefix = uniqueAttributes || 'Scan';
+
+    let savedPhotoName = "Failed_To_Save_Image";
+
+    // 2. WAIT FOR THE IMAGE TO SAVE TO DRIVE FIRST
+    try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: 'saveImageOnly', 
+                image: base64Image, 
+                assetName: window.multiScanState.assetName, 
+                scanType: filePrefix 
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            savedPhotoName = result.fileName; // 🟢 We successfully got the filename!
+        }
+    } catch (err) {
+        console.error("Failed to save full image:", err);
+    }
+
+    status.innerText = `Processing ${window.multiScanState.boxes.length} boxes...`;
+
+    // 3. FIRE OFF OCR FOR EACH BOX, PASSING THE FILENAME TO SUPABASE
     const fetchPromises = window.multiScanState.boxes.map(async (box) => {
         const sx = nw * box.rect.leftPct;
         const sy = nh * box.rect.topPct;
         const sw = nw * box.rect.widthPct;
         const sh = nh * box.rect.heightPct;
 
-        const canvas = document.createElement('canvas');
-        canvas.width = sw + (PADDING * 2);
-        canvas.height = sh + (PADDING * 2);
-        const ctx = canvas.getContext('2d');
+        const canvasBox = document.createElement('canvas');
+        canvasBox.width = sw + (PADDING * 2);
+        canvasBox.height = sh + (PADDING * 2);
+        const ctxBox = canvasBox.getContext('2d');
         
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.filter = 'contrast(1.2)';
-        ctx.drawImage(window.multiScanState.imageObj, sx, sy, sw, sh, PADDING, PADDING, sw, sh);
+        ctxBox.fillStyle = '#ffffff';
+        ctxBox.fillRect(0, 0, canvasBox.width, canvasBox.height);
+        ctxBox.filter = 'contrast(1.2)';
+        ctxBox.drawImage(img, sx, sy, sw, sh, PADDING, PADDING, sw, sh);
 
-        const base64Image = canvas.toDataURL('image/jpeg', 1.0);
+        const croppedBase64 = canvasBox.toDataURL('image/jpeg', 1.0);
 
         try {
             const response = await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'ocrImage', image: base64Image })
+                body: JSON.stringify({ 
+                    action: 'ocrImage', 
+                    image: croppedBase64,
+                    assetName: window.multiScanState.assetName, 
+                    attributeName: box.display,
+                    photoName: savedPhotoName // 🟢 Send the master filename!
+                })
             });
             const result = await response.json();
             
@@ -3030,7 +3318,6 @@ async function processMultiCropAndRead() {
         }
     });
 
-    // Wait for ALL image requests to finish at the exact same time
     const results = await Promise.all(fetchPromises);
     
     let successCount = 0;
@@ -3045,7 +3332,7 @@ async function processMultiCropAndRead() {
     });
     
     status.innerText = `Processed ${successCount} values.`;
-    alert(`Extracted ${successCount} values! Please verify them in the grid.`);
+    alert(`Photo saved to Drive and extracted ${successCount} values!\n\nPlease verify them in the grid.`);
     
     stopScanner(); 
     document.getElementById('attr-save-btn').style.display = 'block';
@@ -3055,19 +3342,18 @@ function injectDataIntoInput(inputField, value) {
     inputField.value = value;
     
     const parentBox = inputField.parentElement;
-    const originalBg = parentBox.style.background;
-    parentBox.style.background = '#e3f2fd'; 
-    setTimeout(() => { parentBox.style.background = originalBg; }, 600);
     
+    // Flash blue to show data was received
+    parentBox.style.background = '#e3f2fd'; 
+    
+    // Trigger the input event to automatically update fonts/borders
     inputField.dispatchEvent(new Event('input')); 
-}
-function filterAssetDirectory() {
-    const term = document.getElementById('attr-search').value.toLowerCase();
-    const filtered = cachedAttributesData.filter(obj => {
-        const name = obj['Asset Name'] || obj['Asset'] || "";
-        return name.toLowerCase().includes(term);
-    });
-    renderAssetDirectory(filtered);
+    
+    setTimeout(() => { 
+        // Fade to the correct logical background color
+        const currentVal = inputField.value.trim().toUpperCase();
+        parentBox.style.background = (currentVal === 'TBD' || currentVal === '') ? '#ffebee' : '#f9f9f9'; 
+    }, 600);
 }
 
 let currentPlaceFilter = 'All';
@@ -3086,184 +3372,6 @@ function renderSidebarFilters() {
     renderFilterSection('vertical-results-filter-container', 'Results', window.dropdownData?.col7 || [], selectedResults, 'toggleResultFilter');
 }
 
-function renderDynamicHeaders() {
-    const headerGrid = document.getElementById('dynamic-frozen-grid');
-    
-    // 🟢 THE FIX: Set to exactly 50px! 
-    // 50px (Spacer) + 5px (CSS Gap) = 55px, perfectly matching the rows below!
-    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 50px; box-sizing: border-box;"></div>'; 
-    
-    const visibleCols = scheduleColConfig.filter(c => c.visible);
-    if (visibleCols.length === 0) return;
-    
-    const lastColId = visibleCols[visibleCols.length - 1].id;
-    
-    scheduleColConfig.forEach(col => {
-        if (!col.visible) return;
-        
-        const cell = document.createElement('div');
-        cell.className = 'header-cell';
-        cell.setAttribute('data-col-id', col.id);
-        
-        const textSpan = document.createElement('span');
-        textSpan.innerText = col.name;
-        textSpan.style.display = 'block';
-        textSpan.style.overflow = 'hidden';
-        textSpan.style.textOverflow = 'ellipsis';
-        cell.appendChild(textSpan);
-
-        if (col.id !== lastColId) {
-            const resizer = document.createElement('div');
-            resizer.className = 'col-resizer';
-            cell.appendChild(resizer);
-        }
-        
-        headerGrid.appendChild(cell);
-    });
-    
-    applyColumnWidths();
-    initColumnResizers();
-}
-
-function applyColumnWidths() {
-    let styleEl = document.getElementById('dynamic-col-styles');
-    if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = 'dynamic-col-styles';
-        document.head.appendChild(styleEl);
-    }
-    
-    let css = '';
-    scheduleColConfig.forEach(col => {
-        if (col.visible) {
-            // 🟢 THE FIX: "flex: col.width 1 0%" uses proportional weight instead of hard widths.
-            // This forces the columns to perfectly distribute ONLY the remaining space 
-            // after the gaps/spacers are accounted for, preventing right-edge overflow!
-            css += `
-                [data-col-index="${col.id}"] { 
-                    flex: ${col.width} 1 0% !important; 
-                    width: auto !important; 
-                    max-width: none !important;
-                    min-width: 0 !important;
-                    box-sizing: border-box !important;
-                }
-                .header-cell[data-col-id="${col.id}"] {
-                    flex: ${col.width} 1 0% !important; 
-                    width: auto !important; 
-                    max-width: none !important;
-                    min-width: 0 !important;
-                    box-sizing: border-box !important;
-                }
-            `;
-        }
-    });
-    styleEl.innerHTML = css;
-}
-
-function initColumnResizers() {
-    const resizers = document.querySelectorAll('.col-resizer');
-    let startX, startWidth1, startWidth2, col1, col2, activeResizer, flexGridWidth;
-    
-    resizers.forEach(resizer => {
-        resizer.addEventListener('mousedown', (e) => {
-            if (!document.body.classList.contains('layout-edit-mode')) return;
-            
-            e.preventDefault();
-            activeResizer = resizer;
-            activeResizer.classList.add('active-drag');
-            
-            const headerCell = resizer.parentElement;
-            const colId = parseInt(headerCell.getAttribute('data-col-id'));
-            
-            // Find current column and the adjacent column to the right
-            const visibleCols = scheduleColConfig.filter(c => c.visible);
-            const colIndex = visibleCols.findIndex(c => c.id === colId);
-            
-            if (colIndex === -1 || colIndex === visibleCols.length - 1) return; 
-            
-            col1 = visibleCols[colIndex];
-            col2 = visibleCols[colIndex + 1];
-            
-            startX = e.pageX;
-            startWidth1 = col1.width;
-            startWidth2 = col2.width;
-            
-            // 🟢 THE FIX: Calculate the EXACT flexible pixel area 
-            // (Total Grid Width minus the 50px Spacer minus the 5px gaps between columns)
-            const totalGaps = 5 * (visibleCols.length - 1);
-            flexGridWidth = document.getElementById('dynamic-frozen-grid').offsetWidth - 50 - totalGaps;
-            
-            document.addEventListener('mousemove', mouseMoveHandler);
-            document.addEventListener('mouseup', mouseUpHandler);
-        });
-    });
-    
-    function mouseMoveHandler(e) {
-        if (!col1 || !col2) return;
-        
-        // Find how many pixels you moved the mouse
-        const deltaX = e.pageX - startX;
-        
-        // Convert those pixels into a percentage of the flexible space
-        const deltaPct = (deltaX / flexGridWidth) * 100;
-        
-        const newWidth1 = startWidth1 + deltaPct;
-        const newWidth2 = startWidth2 - deltaPct;
-        
-        // Ensure columns don't crush each other into negative space (min 2%)
-        if (newWidth1 > 2 && newWidth2 > 2) {
-            col1.width = newWidth1;
-            col2.width = newWidth2;
-            applyColumnWidths(); 
-        }
-    }
-    
-    function mouseUpHandler() {
-        document.removeEventListener('mousemove', mouseMoveHandler);
-        document.removeEventListener('mouseup', mouseUpHandler);
-        if (activeResizer) {
-            activeResizer.classList.remove('active-drag');
-            activeResizer = null;
-        }
-    }
-}
-
-// --- NEW: LAYOUT EDIT MODE LOGIC ---
-let backupColConfig = [];
-
-function enterLayoutEditMode() {
-    document.getElementById('schedule-config-modal').style.display = 'none';
-    backupColConfig = JSON.parse(JSON.stringify(scheduleColConfig)); // Save a backup
-    document.body.classList.add('layout-edit-mode'); // Trigger the blue visual CSS
-}
-
-function cancelLayoutEdits() {
-    scheduleColConfig = backupColConfig; // Restore the backup
-    applyColumnWidths(); // Snap back to original sizes
-    document.body.classList.remove('layout-edit-mode');
-}
-
-async function saveLayoutEdits() {
-    const btn = document.querySelector('#layout-edit-toolbar button:nth-child(2)');
-    btn.innerText = "Saving...";
-    btn.disabled = true;
-    
-    try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'setScheduleConfig', data: scheduleColConfig }),
-            mode: 'no-cors'
-        });
-        alert("Column layout saved successfully!");
-    } catch (e) {
-        console.error("Failed to save layout.", e);
-        alert("There was an issue saving to Google Sheets.");
-    }
-    
-    btn.innerText = "Save Layout";
-    btn.disabled = false;
-    document.body.classList.remove('layout-edit-mode');
-}
 
 /**
  * Reusable builder for filter sections
@@ -3672,6 +3780,23 @@ async function triggerFullStatusRefresh() {
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // --- THE FIX: Let Supabase officially flag when a password reset happens ---
+        _supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                window.isUpdateMode = true; // Raise the flag!
+                
+                // Force the UI to the PIN Update screen instantly
+                document.getElementById('loading-spinner-section').style.display = 'none';
+                document.getElementById('auth-prompt').style.display = 'block';
+                
+                document.getElementById('auth-title').innerText = "Update PIN";
+                document.getElementById('auth-subtitle').innerText = "Enter your new 6-digit PIN below.";
+                document.getElementById('auth-btn').innerText = "Set New PIN";
+                document.getElementById('user-email-input').style.display = 'none';
+                document.getElementById('auth-toggle-link').parentElement.style.display = 'none';
+            }
+        });
+
         // 1. Define the Admin Email at the top of your <script>
 const ADMIN_EMAIL = "cbaldwin@criticalarccx.com"; // Change to your actual email
 
@@ -3817,12 +3942,13 @@ function stringToColor(str) {
 }
 
 function initRealtimeSync() {
+    // 1. MASTER SCHEDULE SYNC
     _supabase
         .channel('schema-db-changes')
         .on('postgres_changes', { 
-            event: '*', // Listen to INSERT, UPDATE, and DELETE
+            event: '*', 
             schema: 'public', 
-            table: 'RNO04BackEndData' // FIX: Corrected table name
+            table: 'RNO04BackEndData' 
         }, payload => {
             if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
                 const row = payload.new;
@@ -3841,6 +3967,51 @@ function initRealtimeSync() {
                     if (statusCell) statusCell.innerText = "...";
                 }
             }
+        })
+        .subscribe();
+
+    // 2. NEW: ADMIN USER REQUESTS SYNC
+    if (window.isAdmin) {
+        _supabase
+            .channel('admin-requests-sync')
+            .on('postgres_changes', { 
+                event: '*', 
+                schema: 'public', 
+                table: 'RNO04access_requests' 
+            }, payload => {
+                // Auto-refresh the panel if it's currently open on screen
+                const panel = document.getElementById('admin-panel');
+                if (panel && panel.style.display !== 'none') {
+                    refreshRequestList();
+                }
+                
+                // Flash a red visual alert on the "Manage Access" button if a new request comes in
+                const btn = document.getElementById('admin-share-btn');
+                if (btn && payload.eventType === 'INSERT') {
+                    btn.style.backgroundColor = '#ffebee';
+                    btn.style.color = '#d32f2f';
+                    btn.innerHTML = '🚨 New Access Request!';
+                    setTimeout(() => {
+                        btn.style.backgroundColor = 'transparent';
+                        btn.style.color = '#01579b';
+                        btn.innerHTML = '👤 Manage Access';
+                    }, 5000);
+                }
+            })
+            .subscribe();
+    }
+
+    // 3. NEW: SYSTEM DROPDOWN DATA SYNC
+    // If another user adds an activity/asset in settings, it instantly pushes to everyone's dropdowns
+    _supabase
+        .channel('dropdown-sync')
+        .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'RNO04dropdownoptions' 
+        }, payload => {
+            console.log("System data changed by another user. Refreshing dropdowns silently...");
+            fetchRNO04dropdownoptions();
         })
         .subscribe();
 }
@@ -3889,16 +4060,14 @@ async function handleForgotPin() {
     const email = document.getElementById('user-email-input').value.trim().toLowerCase();
     const errorEl = document.getElementById('auth-error');
     const successEl = document.getElementById('auth-success');
-
     if (!email) {
         errorEl.innerText = "Please enter your email address first.";
         errorEl.style.display = 'block';
         return;
     }
-
     const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + window.location.pathname,
-    });
+        redirectTo: "https://rno-04-launchpad.vercel.app/" 
+    }); // <-- ADDED THE MISSING `});` HERE
 
     if (error) {
         errorEl.innerText = error.message;
@@ -4045,15 +4214,24 @@ async function completeAppLaunch() {
 }
 
 async function startApp() {
-    createSections(); 
+    createSections();
     const urlParams = new URLSearchParams(window.location.search);
     const grantTarget = urlParams.get('grant');
     const spinnerSection = document.getElementById('loading-spinner-section');
     const authPrompt = document.getElementById('auth-prompt');
     const loader = document.getElementById('loading-overlay');
 
+    // --- THE FIX: Ask Google Apps Script to read the URL outside the iframe ---
+    let currentHash = window.location.hash;
+    
+    // If running in Google Apps Script, use their specific tool to find the hash
+    if (typeof google !== 'undefined' && google.script && google.script.url) {
+        currentHash = await new Promise(resolve => {
+            google.script.url.getLocation(loc => resolve(loc.hash || ""));
+        });
+    }
     // Detect Recovery (Forgot PIN) link
-    const isRecovery = window.location.hash.includes('type=recovery');
+    const isRecovery = currentHash.includes('type=recovery') || window.isUpdateMode === true;
 
     if (isRecovery) {
         spinnerSection.style.display = 'none';
@@ -4425,28 +4603,36 @@ function applyCellColor(element, value) {
     }
 
     // --- Color Logic (Expanded to catch all standard statuses) ---
+    // Use setProperty(..., 'important') so these inline colors always win over the
+    // dark-mode stylesheet's "body.dark-mode input/select/textarea { background-color: ... !important }"
+    // rule, which would otherwise flatten every select/input/textarea to the same dark grey.
+    const isDark = document.body.classList.contains('dark-mode');
+
     if (cleanVal === "" || lowerVal === "select..." || lowerVal === "..." || lowerVal === "na" || lowerVal.includes("no rule matched")) {
-        element.style.backgroundColor = "#f9f9f9";
-        element.style.color = "#666";
+        element.style.setProperty('background-color', isDark ? '#2c2c2c' : '#f9f9f9', 'important');
+        element.style.setProperty('color', isDark ? '#888888' : '#666666', 'important');
         return;
     }
 
     // Default color (Light Blue)
-    element.style.backgroundColor = "#e1f5fe";
-    element.style.color = "#01579b";
+    let bg = "#e1f5fe";
+    let fg = "#01579b";
 
     // Green: Pass, High, Ready, Completed, Closed, Clear, 4
     if (lowerVal.includes("high") || lowerVal.includes("pass") || lowerVal.includes(" 4") || lowerVal.includes("ready") || lowerVal.includes("completed") || lowerVal.includes("closed") || lowerVal.includes("clear")) {
-        element.style.backgroundColor = "#c8e6c9"; element.style.color = "#1b5e20";
+        bg = "#c8e6c9"; fg = "#1b5e20";
     } 
     // Yellow: Med, Hold, In Progress, Pending, 2, Checking
     else if (lowerVal.includes("med") || lowerVal.includes("hold") || lowerVal.includes(" 2") || lowerVal.includes("progress") || lowerVal.includes("pending") || lowerVal.includes("checking")) {
-        element.style.backgroundColor = "#fff9c4"; element.style.color = "#f57f17";
+        bg = "#fff9c4"; fg = "#f57f17";
     } 
     // Red: Open, Fail, Incomplete, Issue, Rejected
     else if (lowerVal.includes("open") || lowerVal.includes("fail") || lowerVal.includes("incomplete") || lowerVal.includes("issue") || lowerVal.includes("rejected")) {
-        element.style.backgroundColor = "#ffcdd2"; element.style.color = "#b71c1c";
+        bg = "#ffcdd2"; fg = "#b71c1c";
     }
+
+    element.style.setProperty('background-color', bg, 'important');
+    element.style.setProperty('color', fg, 'important');
 }
 
 async function syncAllAssetLookups() {
@@ -4565,6 +4751,7 @@ function addRowsToContainer(container, dayLabel, anchorBtn = null, startIdx = 0,
         // Hide initial overflow rows, but always show dynamically added ones
         rowDiv.style.display = (r > 14 && startIdx === 0) ? 'none' : 'flex';
 
+        // --- NEW DRAG AND DROP HANDLE ---
         const dragHandle = document.createElement('div');
         dragHandle.innerHTML = '⣿';
         dragHandle.style.cssText = "flex: 0 0 25px; cursor: grab; color: #bbb; font-size: 18px; user-select: none; display: flex; align-items: center; justify-content: center;";
@@ -4754,6 +4941,185 @@ function addRowsToContainer(container, dayLabel, anchorBtn = null, startIdx = 0,
         container.appendChild(rowDiv);
     }
     if (anchorBtn) container.appendChild(anchorBtn);
+}
+
+function renderDynamicHeaders() {
+    const headerGrid = document.getElementById('dynamic-frozen-grid');
+    
+    // 🟢 THE FIX: Set to exactly 50px! 
+    // 50px (Spacer) + 5px (CSS Gap) = 55px, perfectly matching the rows below!
+    headerGrid.innerHTML = '<div class="check-spacer" style="flex: 0 0 50px; box-sizing: border-box;"></div>'; 
+    
+    const visibleCols = scheduleColConfig.filter(c => c.visible);
+    if (visibleCols.length === 0) return;
+    
+    const lastColId = visibleCols[visibleCols.length - 1].id;
+    
+    scheduleColConfig.forEach(col => {
+        if (!col.visible) return;
+        
+        const cell = document.createElement('div');
+        cell.className = 'header-cell';
+        cell.setAttribute('data-col-id', col.id);
+        
+        const textSpan = document.createElement('span');
+        textSpan.innerText = col.name;
+        textSpan.style.display = 'block';
+        textSpan.style.overflow = 'hidden';
+        textSpan.style.textOverflow = 'ellipsis';
+        cell.appendChild(textSpan);
+
+        if (col.id !== lastColId) {
+            const resizer = document.createElement('div');
+            resizer.className = 'col-resizer';
+            cell.appendChild(resizer);
+        }
+        
+        headerGrid.appendChild(cell);
+    });
+    
+    applyColumnWidths();
+    initColumnResizers();
+}
+
+function applyColumnWidths() {
+    let styleEl = document.getElementById('dynamic-col-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dynamic-col-styles';
+        document.head.appendChild(styleEl);
+    }
+    
+    let css = '';
+    scheduleColConfig.forEach(col => {
+        if (col.visible) {
+            // 🟢 THE FIX: "flex: col.width 1 0%" uses proportional weight instead of hard widths.
+            // This forces the columns to perfectly distribute ONLY the remaining space 
+            // after the gaps/spacers are accounted for, preventing right-edge overflow!
+            css += `
+                [data-col-index="${col.id}"] { 
+                    flex: ${col.width} 1 0% !important; 
+                    width: auto !important; 
+                    max-width: none !important;
+                    min-width: 0 !important;
+                    box-sizing: border-box !important;
+                }
+                .header-cell[data-col-id="${col.id}"] {
+                    flex: ${col.width} 1 0% !important; 
+                    width: auto !important; 
+                    max-width: none !important;
+                    min-width: 0 !important;
+                    box-sizing: border-box !important;
+                }
+            `;
+        }
+    });
+    styleEl.innerHTML = css;
+}
+
+function initColumnResizers() {
+    const resizers = document.querySelectorAll('.col-resizer');
+    let startX, startWidth1, startWidth2, col1, col2, activeResizer, flexGridWidth;
+    
+    resizers.forEach(resizer => {
+        resizer.addEventListener('mousedown', (e) => {
+            if (!document.body.classList.contains('layout-edit-mode')) return;
+            
+            e.preventDefault();
+            activeResizer = resizer;
+            activeResizer.classList.add('active-drag');
+            
+            const headerCell = resizer.parentElement;
+            const colId = parseInt(headerCell.getAttribute('data-col-id'));
+            
+            // Find current column and the adjacent column to the right
+            const visibleCols = scheduleColConfig.filter(c => c.visible);
+            const colIndex = visibleCols.findIndex(c => c.id === colId);
+            
+            if (colIndex === -1 || colIndex === visibleCols.length - 1) return; 
+            
+            col1 = visibleCols[colIndex];
+            col2 = visibleCols[colIndex + 1];
+            
+            startX = e.pageX;
+            startWidth1 = col1.width;
+            startWidth2 = col2.width;
+            
+            // 🟢 THE FIX: Calculate the EXACT flexible pixel area 
+            // (Total Grid Width minus the 50px Spacer minus the 5px gaps between columns)
+            const totalGaps = 5 * (visibleCols.length - 1);
+            flexGridWidth = document.getElementById('dynamic-frozen-grid').offsetWidth - 50 - totalGaps;
+            
+            document.addEventListener('mousemove', mouseMoveHandler);
+            document.addEventListener('mouseup', mouseUpHandler);
+        });
+    });
+    
+    function mouseMoveHandler(e) {
+        if (!col1 || !col2) return;
+        
+        // Find how many pixels you moved the mouse
+        const deltaX = e.pageX - startX;
+        
+        // Convert those pixels into a percentage of the flexible space
+        const deltaPct = (deltaX / flexGridWidth) * 100;
+        
+        const newWidth1 = startWidth1 + deltaPct;
+        const newWidth2 = startWidth2 - deltaPct;
+        
+        // Ensure columns don't crush each other into negative space (min 2%)
+        if (newWidth1 > 2 && newWidth2 > 2) {
+            col1.width = newWidth1;
+            col2.width = newWidth2;
+            applyColumnWidths(); 
+        }
+    }
+    
+    function mouseUpHandler() {
+        document.removeEventListener('mousemove', mouseMoveHandler);
+        document.removeEventListener('mouseup', mouseUpHandler);
+        if (activeResizer) {
+            activeResizer.classList.remove('active-drag');
+            activeResizer = null;
+        }
+    }
+}
+
+// --- NEW: LAYOUT EDIT MODE LOGIC ---
+let backupColConfig = [];
+
+function enterLayoutEditMode() {
+    document.getElementById('schedule-config-modal').style.display = 'none';
+    backupColConfig = JSON.parse(JSON.stringify(scheduleColConfig)); // Save a backup
+    document.body.classList.add('layout-edit-mode'); // Trigger the blue visual CSS
+}
+
+function cancelLayoutEdits() {
+    scheduleColConfig = backupColConfig; // Restore the backup
+    applyColumnWidths(); // Snap back to original sizes
+    document.body.classList.remove('layout-edit-mode');
+}
+
+async function saveLayoutEdits() {
+    const btn = document.querySelector('#layout-edit-toolbar button:nth-child(2)');
+    btn.innerText = "Saving...";
+    btn.disabled = true;
+    
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'setScheduleConfig', data: scheduleColConfig }),
+            mode: 'no-cors'
+        });
+        alert("Column layout saved successfully!");
+    } catch (e) {
+        console.error("Failed to save layout.", e);
+        alert("There was an issue saving to Google Sheets.");
+    }
+    
+    btn.innerText = "Save Layout";
+    btn.disabled = false;
+    document.body.classList.remove('layout-edit-mode');
 }
 
 /**
@@ -5103,14 +5469,15 @@ async function handleAuthAction() {
         }
 
         if (isSignUpMode) {
-            const { error } = await _supabase.auth.signUp({ 
-    email: email, 
-    password: pin,
-    options: {
-        // This dynamically sends them back to the exact current page folder
-        emailRedirectTo: window.location.origin + window.location.pathname 
-    }
-});
+            const { error } = await _supabase.auth.signUp({
+                email: email,
+                password: pin,
+                options: {
+                    // This dynamically sends them back to the exact current page folder
+                    emailRedirectTo: window.location.origin + window.location.pathname
+                }
+            }); // <-- ADDED THE MISSING `});` HERE
+
             if (error) throw error;
             successEl.innerText = "Success! Check your email to verify your account.";
             successEl.style.display = 'block';
