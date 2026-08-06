@@ -1,0 +1,29 @@
+# ── STAGED ARTIFACT — do NOT run from here ──────────────────────────
+# Final home: EACH client repo (dashboard-<client>)  →
+#             .github/workflows/refresh.yml
+#
+# This is the ENTIRE workflow a client repo needs. It owns only the schedule;
+# all logic lives in versioned core. `secrets: inherit` forwards the client's
+# CXALLOY_* repo secrets AND the org-level CORE_APP_* secrets to the reusable
+# workflow.
+# ────────────────────────────────────────────────────────────────────
+name: Refresh dashboard data
+
+on:
+  schedule:
+    - cron: "0 * * * *"      # hourly, on the hour (UTC)
+  workflow_dispatch: {}       # manual trigger from the Actions tab
+
+concurrency:
+  group: refresh-dashboard
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    uses: kspann-hub/arc-dashboard-core/.github/workflows/refresh.yml@v1
+    permissions:
+      contents: write
+    secrets: inherit
+    with:
+      served_dir: html-dashboard
+      # core_ref: v1          # pin/override the core version per client if needed
