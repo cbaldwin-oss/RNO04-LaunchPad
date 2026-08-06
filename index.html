@@ -796,14 +796,6 @@
     #sidebar { top: 60px; height: calc(100vh - 60px); }
 }
 
-/* The Iframe itself */
-#streamlit-iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    display: block; /* Removes tiny bottom gap common in iframes */
-}
-
 .dash-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -1506,17 +1498,25 @@ body.dark-mode .phase-row {
         </div>
     </div>
 </div>
-<div id="dashboard-view" style="display: none; height: 100%; width: 100%; overflow: hidden;">
-    <iframe 
-        id="streamlit-iframe"
-        src="https://switch-criticalarc-cxdashboard.streamlit.app/?embed=true&embed_options=light_theme" 
-        width="100%" 
-        height="100%" 
-        frameborder="0"
-        style="width: 100%; height: 100%; border: none; margin: 0; padding: 0; display: block; overflow: hidden;"
-        allow="autoplay; encrypted-media; fullscreen"
-        allowfullscreen>
-    </iframe>
+<div id="dashboard-view" style="display: none; height: 100%; width: 100%;">
+    <!-- Inside your LaunchPad Application HTML -->
+
+<!-- 1. The container where the dashboard will render -->
+
+<div id="launchpad-dashboard-container" style="height: 100%;"></div>
+
+<!-- 2. Import Plotly natively so the script can access it -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+
+<!-- 3. Mount the Module -->
+<script type="module">
+  // Import the class we just created
+  import { CriticalArcDashboard } from './dashboard.js'; 
+  
+// Store the instance globally, but DO NOT mount it on load
+  window.caDashboardInstance = new CriticalArcDashboard('launchpad-dashboard-container');
+  window.caDashboardMounted = false;
+</script>
 </div>
 <div id="equipment-tracker-view" style="display: none; height: 100%; width: 100%;">
     <iframe 
@@ -1582,6 +1582,10 @@ body.dark-mode .phase-row {
                 </div>
                 <button id="schedule-setup-btn" class="tool-btn" onclick="openScheduleConfigModal()" style="display: none; background: #f1f3f4; border-color: #dcdcdc; color: #555;">  Setup Config</button>
                 <span id="saveIndicator">Saved</span>
+                                
+                <!-- NEW: Refresh Button -->
+                <button class="tool-btn" onclick="window.location.reload()" style="background: #e8f5e9; color: #2e7d32; border-color: #2e7d32; margin-left: 5px; font-weight: bold;" title="Reload Window">🔄 Refresh</button>
+                
                 <button class="tool-btn" onclick="exportToPDF()" style="background: #ffffff; color: #d6281c; border-color: #d6281c; margin-left: 5px; font-weight: bold;">PDF</button>
             </div>
         </div>
@@ -1828,7 +1832,6 @@ const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     <table id="grid"></table>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="dashboard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="settings.js"></script>
 
@@ -2177,6 +2180,11 @@ function switchMainView(viewType, btn) {
     if (viewType === 'dashboard') {
         if (dash) dash.style.display = 'block';
         if (appBody) appBody.style.width = 'calc(100% - 36px)'; 
+                // NEW: Lazy load the dashboard only when clicked
+        if (window.caDashboardInstance && !window.caDashboardMounted) {
+            window.caDashboardMounted = true;
+            window.caDashboardInstance.mount().catch(err => console.error("Dashboard error:", err));
+        }
     } else if (viewType === 'equipment') { 
         if (equipmentView) equipmentView.style.display = 'block'; 
         if (appBody) appBody.style.width = 'calc(100% - 36px)'; 
@@ -4022,14 +4030,16 @@ function updateRowInUI(row) {
     if (!rowEl) return;
 
     rowEl.setAttribute('data-occupied', 'true');
+    // Column Name Mapping
+    const dbCols = { 1: 'time', 2: 'place', 3: 'activity', 4: 'asset', 5: 'status', 6: 'trade_partners', 7: 'result', 8: 'notes', 9: 'duration' };
 
-    // Update columns 1 through 8
-    for (let i = 1; i <= 8; i++) {
+    // Update columns 1 through 9
+    for (let i = 1; i <= 9; i++) {
         const cellId = `${row.day_label}-r${row.id}-c${i}`;
         const el = document.getElementById(cellId);
         
         if (el && el !== document.activeElement) {
-            const content = row[`col${i}`] || "";
+            const content = row[dbCols[i]] || ""; // <-- Map the number to the new name
             
            if (i === 5) {
                     // Column 5 is a status span
