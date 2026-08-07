@@ -3411,8 +3411,8 @@ let selectedResults = [];
  * Main function to build all sections in the Filter Sidebar
  */
 function renderSidebarFilters() {
-    renderFilterSection('vertical-places-filter-container', 'Places', window.dropdownData?.col2 || [], selectedPlaces, 'togglePlaceFilter');
-    renderFilterSection('vertical-activities-filter-container', 'Activities', window.dropdownData?.col3 || [], selectedActivities, 'toggleActivityFilter');
+    renderFilterSection('vertical-activities-filter-container', 'Activities', window.dropdownData?.col2 || [], selectedActivities, 'toggleActivityFilter');
+    renderFilterSection('vertical-places-filter-container', 'Places', window.dropdownData?.col3 || [], selectedPlaces, 'togglePlaceFilter');
     renderFilterSection('vertical-results-filter-container', 'Results', window.dropdownData?.col7 || [], selectedResults, 'toggleResultFilter');
 }
 
@@ -3566,59 +3566,6 @@ async function savePhaseRules() {
     }
 }
 
-function renderPlacesFilterButtons() {
-    // Target the new container in the right sidebar
-    const container = document.getElementById('vertical-places-filter-container');
-    if (!container) return;
-
-    // Col2 corresponds to 'Places'
-    const places = window.dropdownData?.col2 || [];
-    
-    const isAllActive = selectedPlaces.length === 0;
-    
-    // Header label and "All" default button
-    container.innerHTML = `
-        <div style="font-weight: bold; color: #333; font-size: 14px; margin-bottom: 5px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Places:</div>
-        <button class="place-filter-btn-vertical ${isAllActive ? 'active' : ''}" onclick="togglePlaceFilter('All')">All</button>
-    `;
-
-    // Create a button for each non-empty place
-    places.forEach(place => {
-        if (place.trim() !== "") {
-            const btn = document.createElement('button');
-            const isActive = selectedPlaces.includes(place);
-            // Use the new vertical button class
-            btn.className = `place-filter-btn-vertical ${isActive ? 'active' : ''}`;
-            btn.innerText = place;
-            btn.onclick = () => togglePlaceFilter(place);
-            container.appendChild(btn);
-        }
-    });
-}
-
-/**
- * Handles toggling multiple Place filters
- */
-function togglePlaceFilter(place) {
-    if (place === 'All') {
-        // Reset to show everything
-        selectedPlaces = [];
-    } else {
-        // Toggle the selected place in the array
-        const index = selectedPlaces.indexOf(place);
-        if (index > -1) {
-            selectedPlaces.splice(index, 1); // Remove if already selected
-        } else {
-            selectedPlaces.push(place); // Add if not selected
-        }
-    }
-    
-    // Re-render the buttons to update their colors
-    renderPlacesFilterButtons();
-
-    // Trigger the master visibility function to hide/show rows
-    autoCleanUI();
-}
 
 /**
  * Handles the selection of a Place filter
@@ -6129,79 +6076,51 @@ function collapseEverything() {
 
 function autoCleanUI() {
     const now = new Date();
-    const todayStr = [
-        now.getFullYear(),
-        String(now.getMonth() + 1).padStart(2, '0'),
-        String(now.getDate()).padStart(2, '0')
-    ].join('-');
-
+    const todayStr = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
     const allRows = document.querySelectorAll('.cell-row');
     if (allRows.length === 0) return;
-
     const company = (window.userCompany || "").toLowerCase();
 
     allRows.forEach(row => {
         const rowDate = row.getAttribute('data-date');
         const rowIndex = parseInt(row.getAttribute('data-row-index') || "0");
         const isOccupied = row.getAttribute('data-occupied') === 'true';
-        
         let shouldShow = true;
         
-        // 1. AutoClean Logic (hide past empty rows, hide excess future rows)
         if (rowDate < todayStr) {
             if (!isOccupied) {
-                const col3 = row.querySelector(`[id$="-c3"]`);
-                const col4 = row.querySelector(`[id$="-c4"]`);
-                const val3 = col3?.value?.toLowerCase() || "";
-                const val4 = col4?.value?.toLowerCase() || "";
-                const isTrulyEmpty = (val3 === "" || val3.includes("select")) && 
-                                     (val4 === "" || val4.includes("select"));
-                if (isTrulyEmpty) {
+                const col2 = row.querySelector('[data-col-index="2"]'); // Activity
+                const col4 = row.querySelector('[data-col-index="4"]'); // Asset
+                const val2 = col2?.value?.toLowerCase().trim() || "";
+                const val4 = col4?.value?.toLowerCase().trim() || "";
+                if ((val2 === "" || val2.includes("select")) && (val4 === "" || val4.includes("select"))) {
                     shouldShow = false;
                 }
             }
-        } else {
-            // Hide blank placeholder rows beyond the standard 15
-            if (rowIndex > 14 && !isOccupied) {
-                shouldShow = false;
-            }
+        } else if (rowIndex > 14 && !isOccupied) {
+            shouldShow = false;
         }
 
-        // 2. "My Activities" Filter Logic
         if (shouldShow && isMyActivitiesActive) {
-            const col6 = row.querySelector('[id$="-c6"]');
-            const tradePartners = (col6?.getAttribute('data-selected') || col6?.value || "").toLowerCase();
-            
-            if (!tradePartners.includes(company)) {
-                shouldShow = false;
-            }
+            const col6 = row.querySelector('[data-col-index="6"]');
+            if (!(col6?.getAttribute('data-selected') || col6?.value || "").toLowerCase().includes(company)) shouldShow = false;
         }
 
-        // 3. "Places" Filter Logic (Multi-select)
-        if (shouldShow && selectedPlaces.length > 0) {
-            const col2 = row.querySelector('[id$="-c2"]');
-            const placeVal = (col2?.value || "").toLowerCase().trim();
-            if (!selectedPlaces.some(p => p.toLowerCase() === placeVal)) {
-                shouldShow = false;
-            }
-        }
-
-        // 4. "Activities" Filter (Col 3)
+        // Activities Filter (Now Col 2)
         if (shouldShow && selectedActivities.length > 0) {
-            const col3 = row.querySelector('[id$="-c3"]');
-            const actVal = (col3?.value || "").toLowerCase().trim();
-            if (!selectedActivities.some(a => a.toLowerCase() === actVal)) {
-                shouldShow = false;
-            }
+            const actVal = (row.querySelector('[data-col-index="2"]')?.value || "").toLowerCase().trim();
+            if (!selectedActivities.some(a => a.toLowerCase().trim() === actVal)) shouldShow = false;
         }
 
-        // 5. "Results" Filter (Col 7)
+        // Places Filter (Now Col 3)
+        if (shouldShow && selectedPlaces.length > 0) {
+            const placeVal = (row.querySelector('[data-col-index="3"]')?.value || "").toLowerCase().trim();
+            if (!selectedPlaces.some(p => p.toLowerCase().trim() === placeVal)) shouldShow = false;
+        }
+
         if (shouldShow && selectedResults.length > 0) {
-            const col7 = row.querySelector('[id$="-c7"]');
-            const resVal = (col7?.value || "").toLowerCase().trim();
-            if (!selectedResults.some(r => r.toLowerCase() === resVal)) {
-                shouldShow = false;
-            }
+            const resVal = (row.querySelector('[data-col-index="7"]')?.value || "").toLowerCase().trim();
+            if (!selectedResults.some(r => r.toLowerCase().trim() === resVal)) shouldShow = false;
         }
 
         row.style.display = shouldShow ? 'flex' : 'none';
