@@ -1710,8 +1710,8 @@ body.dark-mode .phase-row {
 // 🟢 THE FIX: Widths are now percentages that perfectly equal 100%
 const defaultScheduleConfig = [
     { id: 1, name: 'Time', visible: true, width: 10 },
-    { id: 2, name: 'Activity', visible: true, width: 15 },
-    { id: 3, name: 'Place', visible: true, width: 10 },
+    { id: 2, name: 'Place', visible: true, width: 10 },
+    { id: 3, name: 'Activity', visible: true, width: 15 },
     { id: 4, name: 'Asset', visible: true, width: 15 },
     { id: 5, name: 'Status', visible: true, width: 10 },
     { id: 6, name: 'Trade Partners', visible: true, width: 15 },
@@ -3411,8 +3411,8 @@ let selectedResults = [];
  * Main function to build all sections in the Filter Sidebar
  */
 function renderSidebarFilters() {
-    renderFilterSection('vertical-activities-filter-container', 'Activities', window.dropdownData?.col2 || [], selectedActivities, 'toggleActivityFilter');
-    renderFilterSection('vertical-places-filter-container', 'Places', window.dropdownData?.col3 || [], selectedPlaces, 'togglePlaceFilter');
+    renderFilterSection('vertical-places-filter-container', 'Places', window.dropdownData?.col2 || [], selectedPlaces, 'togglePlaceFilter');
+    renderFilterSection('vertical-activities-filter-container', 'Activities', window.dropdownData?.col3 || [], selectedActivities, 'toggleActivityFilter');
     renderFilterSection('vertical-results-filter-container', 'Results', window.dropdownData?.col7 || [], selectedResults, 'toggleResultFilter');
 }
 
@@ -4023,7 +4023,7 @@ function updateRowInUI(row) {
 
     rowEl.setAttribute('data-occupied', 'true');
     // Column Name Mapping
-    const dbCols = { 1: 'time', 2: 'activity', 3: 'place', 4: 'asset', 5: 'status', 6: 'trade_partners', 7: 'result', 8: 'notes', 9: 'duration' };
+    const dbCols = { 1: 'time', 2: 'place', 3: 'activity', 4: 'asset', 5: 'status', 6: 'trade_partners', 7: 'result', 8: 'notes', 9: 'duration' };
 
     // Update columns 1 through 9
     for (let i = 1; i <= 9; i++) {
@@ -4694,8 +4694,8 @@ async function fetchRNO04dropdownoptions() {
             const result = row.Results?.toString().trim();
 
             if (time && !newData.col1.includes(time)) newData.col1.push(time);
-            if (activity && !newData.col2.includes(activity)) newData.col2.push(activity); // Activity is Col 2
-            if (place && !newData.col3.includes(place)) newData.col3.push(place);          // Place is Col 3
+            if (place && !newData.col2.includes(place)) newData.col2.push(place);          // Place is Col 2
+            if (activity && !newData.col3.includes(activity)) newData.col3.push(activity); // Activity is Col 3
             if (asset && !newData.col4.includes(asset)) newData.col4.push(asset);
             if (trade && !newData.col6.includes(trade)) newData.col6.push(trade);
             if (result && !newData.col7.includes(result)) newData.col7.push(result);
@@ -4896,7 +4896,7 @@ function addRowsToContainer(container, dayLabel, anchorBtn = null, startIdx = 0,
                     applyCellColor(element, element.value); 
                     saveCell(element, element.value, col, true);
                     
-                    // Auto-Populate logic for Place
+                    // Auto-Populate logic for Place (Place is C2)
                     if (col === 4 && window.assetToPlaceMap && window.assetToPlaceMap[element.value]) {
                         const newPlace = window.assetToPlaceMap[element.value];
                         const placeEl = document.getElementById(`${dayLabel}-r${rowNumericId}-c2`);
@@ -5283,7 +5283,7 @@ function saveCell(cell, value, colIndex, isImmediate = false) {
         if (currentValue.includes("Checking") || (isFailsafe && currentValue === oldValue)) return;
 
         // Column Name Mapping
-        const dbCols = { 1: 'time', 2: 'activity', 3: 'place', 4: 'asset', 5: 'status', 6: 'trade_partners', 7: 'result', 8: 'notes', 9: 'duration' };
+        const dbCols = { 1: 'time', 2: 'place', 3: 'activity', 4: 'asset', 5: 'status', 6: 'trade_partners', 7: 'result', 8: 'notes', 9: 'duration' };
 
         const updateObj = { id: parseInt(rowNum), day_label: dateId };
         updateObj[dbCols[colIndex]] = currentValue; // <-- Map the number to the new name
@@ -5868,38 +5868,30 @@ async function deleteFullRow(wrapperId, bypassConfirm = false) {
 }
 
 async function lookupColumn5Value(rowNum, dayLabel, isBackground = false) {
-    const val2 = document.getElementById(`${dayLabel}-r${rowNum}-c2`)?.value; // Activity is now C2
+    const val3 = document.getElementById(`${dayLabel}-r${rowNum}-c3`)?.value; // Activity is C3
     const val4 = document.getElementById(`${dayLabel}-r${rowNum}-c4`)?.value; // Asset
     const col5 = document.getElementById(`${dayLabel}-r${rowNum}-c5`);        // Status Field
 
-    if (!val2 || val2 === "" || !val4 || val4 === "" || !col5) {
+    if (!val3 || val3 === "" || !val4 || val4 === "" || !col5) {
         if (col5) col5.innerText = "..."; 
         return;
     }
 
     const currentText = col5.innerText;
-
-    // --- UPDATED: Translate Activity into Phase Level (Case Insensitive) ---
-    let phaseToLookup = val2; // Fallback to raw value
+    let phaseToLookup = val3; 
+    const cleanVal3 = val3.trim().toLowerCase(); 
     
-    // Make the selected value lowercase for safe comparison
-    const cleanVal2 = val2.trim().toLowerCase(); 
-    
-    // Safely check our Equivalent Activities dictionary using lowercase
-    if (equivalentActivitiesConfig.L2 && equivalentActivitiesConfig.L2.map(v => v.trim().toLowerCase()).includes(cleanVal2)) {
+    if (equivalentActivitiesConfig.L2 && equivalentActivitiesConfig.L2.map(v => v.trim().toLowerCase()).includes(cleanVal3)) {
         phaseToLookup = "Level 2";
-    } else if (equivalentActivitiesConfig.L3 && equivalentActivitiesConfig.L3.map(v => v.trim().toLowerCase()).includes(cleanVal2)) {
+    } else if (equivalentActivitiesConfig.L3 && equivalentActivitiesConfig.L3.map(v => v.trim().toLowerCase()).includes(cleanVal3)) {
         phaseToLookup = "Level 3";
-    } else if (equivalentActivitiesConfig.L4 && equivalentActivitiesConfig.L4.map(v => v.trim().toLowerCase()).includes(cleanVal2)) {
+    } else if (equivalentActivitiesConfig.L4 && equivalentActivitiesConfig.L4.map(v => v.trim().toLowerCase()).includes(cleanVal3)) {
         phaseToLookup = "Level 4";
     }
 
     try {
-        if (!isBackground) {
-            col5.innerText = "⏳ Checking...";
-        }
+        if (!isBackground) col5.innerText = "⏳ Checking...";
 
-        // Send the Translated Phase and the Asset Name to Apps Script
         const url = `${GOOGLE_SCRIPT_URL}?action=lookup&col3=${encodeURIComponent(phaseToLookup)}&col4=${encodeURIComponent(val4)}`;
         const response = await fetch(url);
         const data = await response.json();
@@ -6115,13 +6107,14 @@ function autoCleanUI() {
         const isOccupied = row.getAttribute('data-occupied') === 'true';
         let shouldShow = true;
         
+        // Hide past empty rows
         if (rowDate < todayStr) {
             if (!isOccupied) {
-                const col2 = row.querySelector('[data-col-index="2"]'); // Activity
+                const col3 = row.querySelector('[data-col-index="3"]'); // Activity
                 const col4 = row.querySelector('[data-col-index="4"]'); // Asset
-                const val2 = col2?.value?.toLowerCase().trim() || "";
+                const val3 = col3?.value?.toLowerCase().trim() || "";
                 const val4 = col4?.value?.toLowerCase().trim() || "";
-                if ((val2 === "" || val2.includes("select")) && (val4 === "" || val4.includes("select"))) {
+                if ((val3 === "" || val3.includes("select")) && (val4 === "" || val4.includes("select"))) {
                     shouldShow = false;
                 }
             }
@@ -6129,23 +6122,25 @@ function autoCleanUI() {
             shouldShow = false;
         }
 
+        // My Activities Filter
         if (shouldShow && isMyActivitiesActive) {
             const col6 = row.querySelector('[data-col-index="6"]');
             if (!(col6?.getAttribute('data-selected') || col6?.value || "").toLowerCase().includes(company)) shouldShow = false;
         }
 
-        // Activities Filter (Now Col 2)
-        if (shouldShow && selectedActivities.length > 0) {
-            const actVal = (row.querySelector('[data-col-index="2"]')?.value || "").toLowerCase().trim();
-            if (!selectedActivities.some(a => a.toLowerCase().trim() === actVal)) shouldShow = false;
-        }
-
-        // Places Filter (Now Col 3)
+        // Places Filter (Col 2)
         if (shouldShow && selectedPlaces.length > 0) {
-            const placeVal = (row.querySelector('[data-col-index="3"]')?.value || "").toLowerCase().trim();
+            const placeVal = (row.querySelector('[data-col-index="2"]')?.value || "").toLowerCase().trim();
             if (!selectedPlaces.some(p => p.toLowerCase().trim() === placeVal)) shouldShow = false;
         }
 
+        // Activities Filter (Col 3)
+        if (shouldShow && selectedActivities.length > 0) {
+            const actVal = (row.querySelector('[data-col-index="3"]')?.value || "").toLowerCase().trim();
+            if (!selectedActivities.some(a => a.toLowerCase().trim() === actVal)) shouldShow = false;
+        }
+
+        // Results Filter
         if (shouldShow && selectedResults.length > 0) {
             const resVal = (row.querySelector('[data-col-index="7"]')?.value || "").toLowerCase().trim();
             if (!selectedResults.some(r => r.toLowerCase().trim() === resVal)) shouldShow = false;
@@ -6293,7 +6288,7 @@ async function loadData(isSilent = false, preFetchedPromise = null) {
                 }
 
                 // THE FIX: Activity is now 2, Place is now 3
-                const dbCols = { 1: 'time', 2: 'activity', 3: 'place', 4: 'asset', 5: 'status', 6: 'trade_partners', 7: 'result', 8: 'notes', 9: 'duration' };
+                const dbCols = { 1: 'time', 2: 'place', 3: 'activity', 4: 'asset', 5: 'status', 6: 'trade_partners', 7: 'result', 8: 'notes', 9: 'duration' };
 
                 for (let col = 1; col <= 9; col++) {
                     const cellId = `${row.day_label}-r${row.id}-c${col}`;
@@ -6629,7 +6624,7 @@ function openBatchAddModal() {
     `).join('');
 
     const actList = document.getElementById('batch-activities-list');
-    actList.innerHTML = (window.dropdownData?.col2 || []).map(a => `
+    actList.innerHTML = (window.dropdownData?.col3 || []).map(a => `
         <label style="display:flex; align-items:center; padding:6px; border-bottom:1px solid #eee; cursor:pointer; font-size:13px; transition: background 0.2s;" onmouseover="this.style.background='#e3f2fd'" onmouseout="this.style.background='transparent'">
             <input type="checkbox" value="${a.replace(/"/g, '&quot;')}" class="batch-act-cb" style="margin-right:8px; transform: scale(1.1); cursor:pointer;"> ${a}
         </label>
@@ -6738,13 +6733,17 @@ async function processBatchAdd() {
                 }
             };
 
-            // Inject the data: Activity is 2, Place is 3
+            // Inject the data: Place is 2, Activity is 3
             setAndSave(1, timeVal);
-            setAndSave(2, act);      
-            setAndSave(3, placeVal); 
+            setAndSave(2, placeVal); // Automatically assigned!
+            setAndSave(3, act);
             setAndSave(4, asset);
             setAndSave(6, selectedTrades);
             setAndSave(8, notesVal);
+
+            // Trigger the Google Sheets Status Lookup
+            lookupColumn5Value(rowNum, targetDate, false);
+            rowIndex++;
 
             // Trigger the Google Sheets Status Lookup
             lookupColumn5Value(rowNum, targetDate, false);
