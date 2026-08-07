@@ -5265,10 +5265,16 @@ function saveCell(cell, value, colIndex, isImmediate = false) {
     const dateId = row.getAttribute('data-date');
     const rowNum = row.id.replace('row-wrapper-', '');
     
+    // NEW FIX: Do not attempt to save any data if this row is being deleted
+    if (deletingRows.has(parseInt(rowNum))) return;
+
     const timeoutKey = `timeout-${rowNum}-${colIndex}`;
     const failsafeKey = `failsafe-${rowNum}-${colIndex}`;
 
     const performSave = async (isFailsafe = false) => {
+        // Double-check inside the async closure in case it was deleted during the 400ms delay
+        if (deletingRows.has(parseInt(rowNum))) return;
+
         // --- UPDATED: Save the full innerHTML so the hyperlink is sent to the database ---
         const currentValue = (cell.tagName === 'SPAN') ? cell.innerHTML : (cell.getAttribute('data-selected') || cell.value);
         const oldValue = cell.getAttribute('data-before-edit') || "";
@@ -5897,6 +5903,9 @@ async function lookupColumn5Value(rowNum, dayLabel, isBackground = false) {
         const url = `${GOOGLE_SCRIPT_URL}?action=lookup&col3=${encodeURIComponent(phaseToLookup)}&col4=${encodeURIComponent(val4)}`;
         const response = await fetch(url);
         const data = await response.json();
+
+        // NEW FIX: Abort immediately if the user deleted this row while we were waiting!
+        if (deletingRows.has(parseInt(rowNum))) return;
 
         if (data && data.result) {
             if (data.result !== col5.innerText || (data.url && !col5.innerHTML.includes('target="_blank"'))) {
