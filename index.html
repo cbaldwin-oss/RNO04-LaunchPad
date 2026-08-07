@@ -2097,16 +2097,16 @@ async function addSelectedReadyItems() {
         // Grab the ID of this specific row to trigger the lookup
         const rowNum = parseInt(emptyRow.id.replace('row-wrapper-', ''));
         
-        const col3 = emptyRow.querySelector(`[data-col-index="3"]`); // Activity
+        const col2 = emptyRow.querySelector(`[data-col-index="2"]`); // Activity
         const col4 = emptyRow.querySelector(`[data-col-index="4"]`); // Asset
         
         // Add Activity
-        if (col3) {
-            const exists = Array.from(col3.options || []).some(opt => opt.value === item.activity);
-            if (!exists && col3.tagName === 'SELECT') col3.add(new Option(item.activity, item.activity));
-            col3.value = item.activity;
-            applyCellColor(col3, item.activity);
-            saveCell(col3, item.activity, 3, true); // Save to Supabase
+        if (col2) {
+            const exists = Array.from(col2.options || []).some(opt => opt.value === item.activity);
+            if (!exists && col2.tagName === 'SELECT') col2.add(new Option(item.activity, item.activity));
+            col2.value = item.activity;
+            applyCellColor(col2, item.activity);
+            saveCell(col2, item.activity, 2, true); // Save to Supabase
         }
         
         // Add Asset
@@ -4191,7 +4191,10 @@ async function completeAppLaunch() {
     const loader = document.getElementById('loading-overlay');
     
     try {
-        // Execute all heavy network requests simultaneously to slash load times
+        // Kick off the heavy schedule data fetch IMMEDIATELY in the background
+        const scheduleDataPromise = _supabase.from('RNO04BackEndData').select('*');
+
+        // Execute all heavy network config requests simultaneously
         await Promise.all([
             fetchRNO04dropdownoptions(),
             loadEquivalentActivities(),
@@ -4200,13 +4203,13 @@ async function completeAppLaunch() {
         ]);
         
         refreshDropdowns();
-        await loadData();
+        // Pass the pre-fetched promise directly to loadData
+        await loadData(false, scheduleDataPromise);
         initRealtimeSync();
 
         applyViewFilter('view2');
         collapseEverything();
 
-        // Hide the loading screen
         loader.classList.add('hidden');
         setTimeout(() => { 
             loader.style.display = 'none'; 
@@ -4280,23 +4283,17 @@ if (permissions.isAuthorized) {
     }
     
     if (window.isAdmin) {
-         // Show the floating blue "Manage Access" button
          document.getElementById('admin-share-btn').style.display = 'inline-block';
-         
-         // Show the Schedule Setup Config button
          const scheduleSetupBtn = document.getElementById('schedule-setup-btn');
-         if (scheduleSetupBtn) {
-             scheduleSetupBtn.style.display = 'inline-block';
-         }
-         
-         // --- THE FIX: Actually show the sidebar icon ---
+         if (scheduleSetupBtn) scheduleSetupBtn.style.display = 'inline-block';
          const navSettings = document.getElementById('nav-settings');
-         if (navSettings) {
-             navSettings.style.display = 'flex'; // This reveals the gear icon
-         }
+         if (navSettings) navSettings.style.display = 'flex'; 
      }
     
-   // Continue with the rest of the launch sequence concurrently
+    // Kick off the heavy schedule data fetch IMMEDIATELY in the background
+    const scheduleDataPromise = _supabase.from('RNO04BackEndData').select('*');
+
+    // Continue with the rest of the launch sequence concurrently
     await Promise.all([
         fetchRNO04dropdownoptions(),
         loadEquivalentActivities(),
@@ -4306,7 +4303,7 @@ if (permissions.isAuthorized) {
     
     initPresence(user.email); 
     refreshDropdowns();
-    await loadData();
+    await loadData(false, scheduleDataPromise);
     initRealtimeSync();
     applyViewFilter('view2');
     collapseEverything();
@@ -5871,11 +5868,11 @@ async function deleteFullRow(wrapperId, bypassConfirm = false) {
 }
 
 async function lookupColumn5Value(rowNum, dayLabel, isBackground = false) {
-    const val3 = document.getElementById(`${dayLabel}-r${rowNum}-c3`)?.value; // Activity
+    const val2 = document.getElementById(`${dayLabel}-r${rowNum}-c2`)?.value; // Activity is now C2
     const val4 = document.getElementById(`${dayLabel}-r${rowNum}-c4`)?.value; // Asset
     const col5 = document.getElementById(`${dayLabel}-r${rowNum}-c5`);        // Status Field
 
-    if (!val3 || val3 === "" || !val4 || val4 === "" || !col5) {
+    if (!val2 || val2 === "" || !val4 || val4 === "" || !col5) {
         if (col5) col5.innerText = "..."; 
         return;
     }
@@ -5883,17 +5880,17 @@ async function lookupColumn5Value(rowNum, dayLabel, isBackground = false) {
     const currentText = col5.innerText;
 
     // --- UPDATED: Translate Activity into Phase Level (Case Insensitive) ---
-    let phaseToLookup = val3; // Fallback to raw value
+    let phaseToLookup = val2; // Fallback to raw value
     
     // Make the selected value lowercase for safe comparison
-    const cleanVal3 = val3.trim().toLowerCase(); 
+    const cleanVal2 = val2.trim().toLowerCase(); 
     
     // Safely check our Equivalent Activities dictionary using lowercase
-    if (equivalentActivitiesConfig.L2 && equivalentActivitiesConfig.L2.map(v => v.trim().toLowerCase()).includes(cleanVal3)) {
+    if (equivalentActivitiesConfig.L2 && equivalentActivitiesConfig.L2.map(v => v.trim().toLowerCase()).includes(cleanVal2)) {
         phaseToLookup = "Level 2";
-    } else if (equivalentActivitiesConfig.L3 && equivalentActivitiesConfig.L3.map(v => v.trim().toLowerCase()).includes(cleanVal3)) {
+    } else if (equivalentActivitiesConfig.L3 && equivalentActivitiesConfig.L3.map(v => v.trim().toLowerCase()).includes(cleanVal2)) {
         phaseToLookup = "Level 3";
-    } else if (equivalentActivitiesConfig.L4 && equivalentActivitiesConfig.L4.map(v => v.trim().toLowerCase()).includes(cleanVal3)) {
+    } else if (equivalentActivitiesConfig.L4 && equivalentActivitiesConfig.L4.map(v => v.trim().toLowerCase()).includes(cleanVal2)) {
         phaseToLookup = "Level 4";
     }
 
@@ -6263,16 +6260,27 @@ function getTimestamp() {
     return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-async function loadData(isSilent = false) {
+async function loadData(isSilent = false, preFetchedPromise = null) {
     try {
-        const { data, error } = await _supabase.from('RNO04BackEndData').select('*');
+        let data, error;
+        
+        // Use the concurrently pre-fetched data to slash load times!
+        if (preFetchedPromise) {
+            const result = await preFetchedPromise;
+            data = result.data;
+            error = result.error;
+        } else {
+            const result = await _supabase.from('RNO04BackEndData').select('*');
+            data = result.data;
+            error = result.error;
+        }
+        
         if (error) throw error;
 
         if (data) {
             data.forEach(row => {
                 if (deletingRows.has(row.id)) return;
 
-                // NEW: If the rows for this date aren't built yet, build them
                 const rowsDiv = document.getElementById(`rows-${row.day_label}`);
                 if (rowsDiv && rowsDiv.innerHTML === '') {
                     const addBtn = createAddRowsButton(rowsDiv, row.day_label);
@@ -6284,43 +6292,36 @@ async function loadData(isSilent = false) {
                     wrapper.setAttribute('data-occupied', 'true');
                 }
 
-                // Column Name Mapping
-                const dbCols = { 1: 'time', 2: 'place', 3: 'activity', 4: 'asset', 5: 'status', 6: 'trade_partners', 7: 'result', 8: 'notes', 9: 'duration' };
+                // THE FIX: Activity is now 2, Place is now 3
+                const dbCols = { 1: 'time', 2: 'activity', 3: 'place', 4: 'asset', 5: 'status', 6: 'trade_partners', 7: 'result', 8: 'notes', 9: 'duration' };
 
                 for (let col = 1; col <= 9; col++) {
                     const cellId = `${row.day_label}-r${row.id}-c${col}`;
                     const el = document.getElementById(cellId);
                     if (el && el !== document.activeElement) {
-    const content = row[dbCols[col]] || ""; // <-- Map the number to the new name
+                        const content = row[dbCols[col]] || ""; 
 
-    if (col === 6) {
-    el.setAttribute('data-selected', content);
-    
-    // Explicitly update the label for immediate visibility on load
-    if (el.options && el.options[0]) {
-        el.options[0].text = content ? `Selected: ${content}` : "+ Add Multi";
-    }
-    } else if (col === 5) {
-                    // ONLY overwrite if the HTML changed, so we don't destroy hyperlinks
-                    if (el.innerHTML.trim() !== content.trim()) {
-                        el.innerHTML = content;
+                        if (col === 6) {
+                            el.setAttribute('data-selected', content);
+                            if (el.options && el.options[0]) {
+                                el.options[0].text = content ? `Selected: ${content}` : "+ Add Multi";
+                            }
+                        } else if (col === 5) {
+                            if (el.innerHTML.trim() !== content.trim()) {
+                                el.innerHTML = content;
+                            }
+                        } else {
+                            if (el.tagName === 'SELECT' && content !== "") {
+                                const exists = Array.from(el.options).some(opt => opt.value === content);
+                                if (!exists) {
+                                    const newOpt = new Option(content, content);
+                                    el.add(newOpt);
+                                }
+                            }
+                            el.value = content; 
+                        }
+                        applyCellColor(el, content);
                     }
-                } else {
-        // --- THE FIX FOR COLS 1-4, 7 ---
-        if (el.tagName === 'SELECT' && content !== "") {
-        // Check if the option already exists in the dropdown
-        const exists = Array.from(el.options).some(opt => opt.value === content);
-        
-        // If the option is missing (because dropdownData hasn't finished), create it
-        if (!exists) {
-            const newOpt = new Option(content, content);
-            el.add(newOpt);
-        }
-    }
-    el.value = content; // Now the value will "stick"
-}
-applyCellColor(el, content);
-}
                 }
             });
             autoCleanUI();
@@ -6737,10 +6738,10 @@ async function processBatchAdd() {
                 }
             };
 
-            // Inject the data
+            // Inject the data: Activity is 2, Place is 3
             setAndSave(1, timeVal);
-            setAndSave(2, placeVal); // Automatically assigned!
-            setAndSave(3, act);
+            setAndSave(2, act);      
+            setAndSave(3, placeVal); 
             setAndSave(4, asset);
             setAndSave(6, selectedTrades);
             setAndSave(8, notesVal);
