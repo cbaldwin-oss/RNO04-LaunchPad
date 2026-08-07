@@ -4191,11 +4191,14 @@ async function completeAppLaunch() {
     const loader = document.getElementById('loading-overlay');
     
     try {
-        // Load the actual schedule data
-        await fetchRNO04dropdownoptions();
-        await loadEquivalentActivities();
-        await loadScheduleConfig();
-        await loadAppConfig();
+        // Execute all heavy network requests simultaneously to slash load times
+        await Promise.all([
+            fetchRNO04dropdownoptions(),
+            loadEquivalentActivities(),
+            loadScheduleConfig(),
+            loadAppConfig()
+        ]);
+        
         refreshDropdowns();
         await loadData();
         initRealtimeSync();
@@ -4293,13 +4296,13 @@ if (permissions.isAuthorized) {
          }
      }
     
-   // Continue with the rest of the launch sequence
-    await fetchRNO04dropdownoptions();
-    await loadEquivalentActivities();
-    await loadScheduleConfig();
-    
-    // --- THE FIX: Tell the app to download the sidebar config on auto-reload ---
-    await loadAppConfig(); 
+   // Continue with the rest of the launch sequence concurrently
+    await Promise.all([
+        fetchRNO04dropdownoptions(),
+        loadEquivalentActivities(),
+        loadScheduleConfig(),
+        loadAppConfig()
+    ]);
     
     initPresence(user.email); 
     refreshDropdowns();
@@ -4694,8 +4697,8 @@ async function fetchRNO04dropdownoptions() {
             const result = row.Results?.toString().trim();
 
             if (time && !newData.col1.includes(time)) newData.col1.push(time);
-            if (place && !newData.col2.includes(place)) newData.col2.push(place);
-            if (activity && !newData.col3.includes(activity)) newData.col3.push(activity);
+            if (activity && !newData.col2.includes(activity)) newData.col2.push(activity); // Activity is Col 2
+            if (place && !newData.col3.includes(place)) newData.col3.push(place);          // Place is Col 3
             if (asset && !newData.col4.includes(asset)) newData.col4.push(asset);
             if (trade && !newData.col6.includes(trade)) newData.col6.push(trade);
             if (result && !newData.col7.includes(result)) newData.col7.push(result);
@@ -6625,7 +6628,7 @@ function openBatchAddModal() {
     `).join('');
 
     const actList = document.getElementById('batch-activities-list');
-    actList.innerHTML = (window.dropdownData?.col3 || []).map(a => `
+    actList.innerHTML = (window.dropdownData?.col2 || []).map(a => `
         <label style="display:flex; align-items:center; padding:6px; border-bottom:1px solid #eee; cursor:pointer; font-size:13px; transition: background 0.2s;" onmouseover="this.style.background='#e3f2fd'" onmouseout="this.style.background='transparent'">
             <input type="checkbox" value="${a.replace(/"/g, '&quot;')}" class="batch-act-cb" style="margin-right:8px; transform: scale(1.1); cursor:pointer;"> ${a}
         </label>
