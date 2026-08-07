@@ -3950,12 +3950,21 @@ function initRealtimeSync() {
                 const rowEl = document.getElementById(`row-wrapper-${rowId}`);
                 if (rowEl) {
                     rowEl.removeAttribute('data-occupied');
-                    rowEl.querySelectorAll('input, select, textarea').forEach(el => {
-                        el.value = "";
+                    rowEl.querySelectorAll('input, select, textarea, .status-cell').forEach(el => {
+                        if (el.classList.contains('status-cell')) {
+                            el.innerText = "...";
+                        } else {
+                            el.value = "";
+                            // NEW: Clear the multi-select attributes here too
+                            if (el.hasAttribute('data-selected')) {
+                                el.setAttribute('data-selected', '');
+                                if (el.options && el.options[0]) {
+                                    el.options[0].text = "+ Add Multi";
+                                }
+                            }
+                        }
                         applyCellColor(el, "");
                     });
-                    const statusCell = rowEl.querySelector('.status-cell');
-                    if (statusCell) statusCell.innerText = "...";
                 }
             }
         })
@@ -5823,8 +5832,18 @@ async function deleteFullRow(wrapperId, bypassConfirm = false) {
             
             const cells = rowElement.querySelectorAll('input, select, textarea, .status-cell');
             cells.forEach(cell => {
-                if (cell.classList.contains('status-cell')) cell.innerText = "...";
-                else cell.value = "";
+                if (cell.classList.contains('status-cell')) {
+                    cell.innerText = "...";
+                } else {
+                    cell.value = "";
+                    // NEW: Forcefully clear the custom multi-select attributes
+                    if (cell.hasAttribute('data-selected')) {
+                        cell.setAttribute('data-selected', '');
+                        if (cell.options && cell.options[0]) {
+                            cell.options[0].text = "+ Add Multi";
+                        }
+                    }
+                }
                 applyCellColor(cell, "");
             });
             // Ensure checkbox is cleared
