@@ -1584,7 +1584,7 @@ body.dark-mode .phase-row {
                 <span id="saveIndicator">Saved</span>
                                 
                 <!-- NEW: Refresh Button -->
-                <button class="tool-btn" onclick="window.location.reload()" style="background: #e8f5e9; color: #2e7d32; border-color: #2e7d32; margin-left: 5px; font-weight: bold;" title="Reload Window">🔄 Refresh</button>
+                <button class="tool-btn" onclick="refreshScheduleData(this)" style="background: #e8f5e9; color: #2e7d32; border-color: #2e7d32; margin-left: 5px; font-weight: bold;" title="Sync Data">🔄 Refresh</button>
                 
                 <button class="tool-btn" onclick="exportToPDF()" style="background: #ffffff; color: #d6281c; border-color: #d6281c; margin-left: 5px; font-weight: bold;">PDF</button>
             </div>
@@ -1971,6 +1971,42 @@ function setReadyFilter(type, btnElement) {
     if (container) container.querySelectorAll('.ready-filter-btn').forEach(b => b.classList.remove('active'));
     if (btnElement) btnElement.classList.add('active');
     renderReadyList();
+}
+
+/**
+ * Refreshes only the schedule data and dropdowns without a full page reload.
+ */
+async function refreshScheduleData(btn) {
+    const originalText = btn.innerHTML;
+    
+    // UI Feedback: Show loading state
+    btn.innerHTML = "⏳ Syncing...";
+    btn.disabled = true;
+    document.getElementById('saveIndicator').innerText = "Syncing with cloud...";
+    document.getElementById('saveIndicator').style.display = 'inline-block';
+    
+    try {
+        // 1. Fetch latest dropdown options (in case someone added a new asset/activity)
+        await fetchPHXA7dropdownoptions();
+        refreshDropdowns();
+        
+        // 2. Fetch the latest schedule line items
+        await loadData();
+        
+        // UI Feedback: Success
+        btn.innerHTML = "✅ Synced";
+        document.getElementById('saveIndicator').innerText = `Synced at: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } catch (error) {
+        console.error("Refresh Error:", error);
+        btn.innerHTML = "❌ Error";
+        document.getElementById('saveIndicator').innerText = "Sync failed";
+    }
+    
+    // Reset button after 2 seconds
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 2000);
 }
 
 /**
